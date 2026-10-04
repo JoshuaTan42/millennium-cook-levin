@@ -4614,3 +4614,44 @@ Length cap `m = n+1+n^k` matches `|y| ≤ n^k` exactly in both directions.
 * `#print axioms p_eq_np` → `[propext, sorryAx, Classical.choice, Quot.sound]`; closure scan: only direct `sorryAx` user is `PvsNP.sat_in_p`. `comp`, `sat_in_np`, `cook_levin` and the Millennium bridge theorem each → `[propext, Classical.choice, Quot.sound]`.
 * Banned-token scan of Solution.lean and all 14 project files it imports: only hit is `SatInP.lean:15` (`sat_in_p … := sorry`).
 * lean4checker: not run (owed before any READY FOR CHECK; not applicable while `sat_in_p` is open).
+
+---
+
+## PRIOR WORK (comparison session, 2026-10-05, read-only except this section)
+
+Sources were read directly where possible: Complexitylib was cloned to the session scratchpad (branch `dev`, HEAD `1c876ef`, 2026-10-04) and its source grepped. Mathlib master and PRs were checked through raw.githubusercontent and the GitHub search API. Other entries come from READMEs and abstracts only and are marked as such.
+
+### Existing Cook-Levin formalizations (all three-axiom, none `sorry`)
+
+| Development | System | Machine model | Statement target | Notes |
+|---|---|---|---|---|
+| Gäher–Kunze, ITP 2021 | Coq | call-by-value λ-calculus L | own definitions | first mechanised Cook-Levin (paper abstract) |
+| Balbach, AFP `Cook_Levin` (2023-01-08) | Isabelle/HOL | deterministic multi-tape TMs (Arora–Barak), two-tape oblivious TM for verifiers | own P/NP/SAT | AFP abstract |
+| **Complexitylib** (Schlesinger), Cook-Levin closed 2026-07-03 | Lean v4.35.0-rc3, Mathlib `728a93ee`, plus CSLib | own Arora–Barak k-work-tape TM/NTM over `Γ = {0,1,□,▷}` (`Complexity.TM`/`NTM`); reduced to single-tape before the tableau | own: `Language := Set (List Bool)`, `P = ⋃k DTIME(n^k)`, `NP = ⋃k NTIME(n^k)` (NTM-based), `≤ₚ` via own `FP`, `SAT.language = {φ.encode \| φ satisfiable}` | headline `Complexity.SAT.NPComplete_language : NPComplete language`; CI `AxiomGuard` enforces `[propext, Classical.choice, Quot.sound]`; `native_decide` only in `Validation` example files. SAT/ ≈ 28.6k lines, Cook-Levin core (`CookLevin.lean` + `CookLevin/`) ≈ 8.6k, plus `VerifierTM` 5.3k and `Internal/GuessVerify` 4.4k; whole library ≈ 735k lines. Also has `language_mem_P_iff_P_eq_NP`, 3SAT, Savitch, PCP, etc. |
+| RBarish-UTokyo/NPCompleteness-Lean4 | Lean v4.35.0-rc2, **core only, no Mathlib** | single-tape TM, 4-symbol alphabet | own statement in a Palomar/Comparator Challenge | README: ≈41k lines, SAT/3SAT/planar 3SAT etc. NP-complete |
+| DominicBreuker/cook-levin-lean | Lean + Mathlib | single-tape TM, proved through a custom register language and compiler | own | README only |
+| Reed, Zenodo 18993257 (2026-02) | Lean 4 | deterministic TM → CNF | encoding correctness; full NP-hardness / poly-time not evident from the abstract | abstract only |
+| solresol, project-intentions #52 (2026-10-03) | Lean + Mathlib | multistack TM interfaces | Cook-Levin listed as a *pending* goal | intention only |
+
+**None of these targets `Millennium.ClayPVersusNP`, Mathlib's `Turing.TM2ComputableInPolyTime`, or the `FinEncoding`-based `InNondeterministicPolynomialTime` / `PolynomialTimeReducible` of LeanMillenniumPrizeProblems.** A grep of Complexitylib for `TM2Computable`, `Turing.TM2`, `ClayPVersusNP`, `Millennium` and `InNondeterministicPolynomialTime` returned nothing. A web search found no other Cook-Levin proof stated against the Millennium-repo definitions.
+
+### Mathlib `proof_wanted TM2ComputableInPolyTime.comp`
+
+* Still open on master, now in `Wanted/Computability/TuringMachine/Computable.lean:20` (the signature is unchanged from our pinned copy at `Mathlib/Computability/TuringMachine/Computable.lean:284`).
+* **A pending PR exists:** mathlib4 #44441 by `vincentqb`, opened 2026-10-02, "prove `TM2ComputableInPolyTime.comp` (`proof_wanted`)". It is labelled `LLM-generated`, `new-contributor`, `blocked-by-other-PR` and has no reviewer yet. It depends on #44440 (same author, same date: TM2 output-length bound, `TM2ComputableInPolyTime.length_le`). Original `proof_wanted` came from #7172 (2023).
+* Our `PvsNP.tm2ComputableInPolyTime_comp` (Comp.lean, 2026-09-25) is independent and earlier, but unpublished. If #44441 merges, our Comp result duplicates upstream Mathlib.
+
+### Blunt assessment
+
+**Not new:**
+* The Cook-Levin theorem as mathematics, and as a sorry-free three-axiom machine-checked proof. It exists in Coq (2021), Isabelle (2023) and at least two complete Lean 4 developments: Complexitylib (2026-07, Mathlib-based, far larger and broader) and NPCompleteness-Lean4. Complexitylib substantially duplicates the *theorem*. Its tableau method (one-hot state/cell/head variables, frame and transition clauses, `Represents` induction) is the same textbook construction as our D3/Sit families.
+* TM2 polytime composition: proved independently by pending mathlib4 #44441.
+* SAT ∈ NP: in every development above.
+* Anything toward (d) `sat_in_p`. Nothing here moves P vs NP. NP-completeness of SAT under the Clay definitions only re-expresses `p_eq_np` as `sat_in_p` (Millennium's `nondeterministic_polynomial_time_complete_in_polynomial_time` already did this, modulo comp and an NP-complete language).
+
+**Genuinely new, as far as this search found (modest, mainly engineering):**
+1. Cook-Levin stated and proved **against the LeanMillenniumPrizeProblems definitions**: `NondeterministicPolynomialTimeComplete (fin_encoding_string Bool) SAT`, over Mathlib's `FinTM2` / `TM2ComputableInPolyTime` and `FinEncoding`, with hardness for NP languages under *any* `FinEncoding`. This discharges two of the three hypotheses of the Clay reduction, `comp` and `cook_levin`, with no axioms beyond the three standard ones. Prior Lean developments use their own TM models and cannot be plugged into `ClayPVersusNP` without a model-equivalence proof, which nobody has done.
+2. A reduction machine built **directly in Mathlib's multi-stack TM2 model** (no tapes; stack-height cap `capH`, situation tables for an arbitrary `FinTM2`, `step_agree` with no hypotheses), plus the generic `Emb.run_embed` stack/label embedding and the `Prog` step-counting library for TM2. Nobody else has a Cook-Levin over TM2. This is new infrastructure but has not been reviewed or published.
+3. Comp. It was independent and earlier (2026-09-25 vs 2026-10-02), but the novelty is weak: a competing PR is already open upstream, and ours is unpublished.
+
+**Caveats for any writeup:** `PvsNP.SAT` is this project's own dense-CNF encoding over `List Bool`. "SAT" in our `cook_levin` means that language, so a writeup must state the encoding (DEFINITIONS.md). Size is about 13.0k lines across the 14 root files `Solution` imports, versus about 8.6k for Complexitylib's Cook-Levin core (which uses a tape model with its own prior infrastructure). Status of the project is unchanged: **NOT PROVED**.
