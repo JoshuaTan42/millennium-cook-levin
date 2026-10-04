@@ -1,0 +1,17 @@
+name = "pvsnp"
+defaultTargets = ["PvsNP"]
+# Reuse the dependency clones (mathlib, Physlib, ...) already fetched for the problems repo,
+# so the pinned revisions and built oleans are shared rather than re-downloaded.
+packagesDir = "LeanMillenniumPrizeProblems/.lake/packages"
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+
+[[require]]
+name = "problems"
+path = "LeanMillenniumPrizeProblems"
+
+[[lean_lib]]
+name = "PvsNP"
+roots = ["Challenge", "Comp", "CookLevin", "SatInP", "Solution", "Prog", "D3Fam", "D3OneHot", "D3Shift", "Sit", "D3Acc", "D3Init", "Emb", "Asm", "Pre", "Pkg"]

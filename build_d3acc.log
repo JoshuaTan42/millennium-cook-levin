@@ -1,0 +1,12 @@
+⚠ [1224/1240] Replayed Challenge
+warning: Challenge.lean:3:8: declaration uses `sorry`
+⚠ [1257/1265] Replayed CookLevin
+warning: CookLevin.lean:803:8: declaration uses `sorry`
+⚠ [1258/1265] Replayed SatInP
+warning: SatInP.lean:15:8: declaration uses `sorry`
+✔ [1264/1265] Built D3Acc (99s)
+Build completed successfully (1265 jobs).
+
+real	2m32.234s
+user	0m0.046s
+sys	0m0.000s

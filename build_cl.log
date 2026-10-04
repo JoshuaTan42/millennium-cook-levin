@@ -1,0 +1,16 @@
+﻿⚠ [1211/1270] Replayed Challenge
+warning: Challenge.lean:3:8: declaration uses `sorry`
+✔ [1258/1270] Built CookLevin (13s)
+⚠ [1259/1270] Built SatInP (21s)
+warning: SatInP.lean:15:8: declaration uses `sorry`
+✔ [1260/1270] Built D3Fam (21s)
+✔ [1261/1270] Built D3OneHot (39s)
+✔ [1262/1270] Built D3Shift (24s)
+✔ [1263/1270] Built Sit (16s)
+✔ [1264/1270] Built D3Acc (29s)
+✔ [1265/1270] Built D3Init (103s)
+✔ [1266/1270] Built Asm (10s)
+✔ [1267/1270] Built Pre (21s)
+✔ [1268/1270] Built Pkg (10s)
+✔ [1269/1270] Built Solution (9.1s)
+Build completed successfully (1270 jobs).

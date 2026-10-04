@@ -1,0 +1,8 @@
+⚠ [1211/1269] Replayed Challenge
+warning: Challenge.lean:3:8: declaration uses `sorry`
+⚠ [1254/1269] Replayed CookLevin
+warning: CookLevin.lean:803:8: declaration uses `sorry`
+⚠ [1255/1269] Replayed SatInP
+warning: SatInP.lean:15:8: declaration uses `sorry`
+✔ [1268/1269] Built Pre (21s)
+Build completed successfully (1269 jobs).
