@@ -1,3 +1,7 @@
 [submodule "LeanMillenniumPrizeProblems"]
 	path = LeanMillenniumPrizeProblems
 	url = https://github.com/lean-dojo/LeanMillenniumPrizeProblems.git
+[submodule "phase4/tools/dpr-trim"]
+	path = phase4/tools/dpr-trim
+	url = https://github.com/marijnheule/dpr-trim.git
+	ignore = untracked

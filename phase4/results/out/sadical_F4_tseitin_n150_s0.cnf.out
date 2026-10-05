@@ -1,0 +1,73 @@
+c SaDiCaL SAT Solver
+c Copyright (C) 2018 by Armin Biere JKU
+c
+c Version 00n 47bff7ef874226b4a00ebd20fedf88eb7c4a3a39
+c Compiler gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+c Options gcc -Wall -O3 -DNDEBUG -DNLOG
+c proof path '/mnt/d/PvsNP/phase4/results/proofs_sadical/F4/tseitin_n150_s0.sadical.dpr'
+c
+c non default options:
+c
+c --binary=false
+c --force=true
+c --witness=false
+c
+c parsing '/mnt/d/PvsNP/phase4/instances/f4/tseitin_n150_s0.cnf'
+c found 'p cnf 225 600' header
+c parsed DIMACS in 0.00 seconds
+c 
+c
+c   time      reduced redundant irredundant
+c       space  restarts  glue      variables
+c           level conflicts  size     remaining
+c
+c s 0.28 0.1 3.8 0 2 27 0 4.8 4.8 596 224 100%
+c - 8.36 0.7 8.3 1 4 2001 1973 9.3 9.3 596 224 100%
+c - 37.72 1.2 7.7 2 4 4002 2988 8.7 8.7 596 224 100%
+c - 82.89 1.7 7.5 3 4 6303 3795 8.5 8.5 596 224 100%
+c - 143.65 1.9 7.2 4 4 8904 4500 8.2 8.2 596 224 100%
+c - 228.35 2.0 7.1 5 4 11805 5158 8.1 8.1 596 224 100%
+c - 334.30 2.4 6.8 6 4 15006 5788 7.8 7.8 596 224 100%
+c s 377.91 2.4 6.6 6 4 16414 0 7.6 7.6 592 223 99%
+c s 378.15 2.4 6.6 6 5 16468 0 7.6 7.6 588 222 99%
+c s 378.38 2.4 6.5 6 6 16578 0 7.5 7.5 584 221 98%
+c - 392.15 2.4 8.2 7 170 18507 1929 9.2 9.2 584 221 98%
+c - 518.56 3.4 10.8 8 516 22308 4766 11.8 11.8 584 221 98%
+c - 740.31 4.6 12.8 9 889 26409 6484 13.8 13.8 584 221 98%
+c - 1028.25 5.2 14.4 10 1289 30810 7644 15.4 15.4 584 221 98%
+c - 1408.98 6.0 15.3 11 1716 35511 8523 16.3 16.3 584 221 98%
+c - 1852.64 6.4 15.9 12 2171 40512 9263 16.9 16.9 584 221 98%
+c 
+c CAUGHT SIGNAL 15 SIGTERM
+c
+c simplifications:             4       11041  conflicts/simplification  100%
+c reductions:                 12        3680  conflicts/reduction       100%
+c restarts:                 2503          18  conflicts/restart         100%
+c conflicts:               44164          20  conflicts/sec              35%
+c decisions:               93812          43  decisions/sec              68%
+c propagations:         12656445         0.0  millions/sec               69%
+c
+c pure:                        0           0% of look-aheads
+c look-ahead:              93812         100% of outer decisions         68%
+c pruned:                  44088         100% of outer conflicts         35%
+c generated reducts:      135393          33% satisfiable
+c average size:             2355          84% of all clauses
+c pruning failed:          91304          67% per reduct
+c filter checks:         5073560           2% of outer satisfied clauses
+c average filtered:          0.0           0% per reduct
+c assumed literals:     10565990         2.1  per filter check
+c
+c collected clauses:        2.44 MB       65% of allocated clauses        0%
+c allocated clauses:        3.72 MB        8% of allocated memory         0%
+c maximum heap:             4.04 MB       45% of resident set size       63%
+c
+c looking:                  0.81 sec       0% of process time
+c filtering:               58.67 sec       3% of process time
+c pruning:               2164.72 sec     100% of process time
+c simplifying:              0.07 sec       0% of process time
+c
+c resident set size:        8.96 MB
+c total process time:    2171.77 sec
+c 
+c RERAISING SIGNAL 15 SIGTERM
+RC=0

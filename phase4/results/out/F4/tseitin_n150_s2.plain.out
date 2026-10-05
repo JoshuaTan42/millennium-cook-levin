@@ -1,0 +1,30 @@
+c mode plain
+c vars 225 clauses 600
+c prunes_as_conflicts 0
+c stat conflicts 17726016
+c stat decisions 27749176
+c stat propagations 213585297
+c stat restarts 26592
+c stat reductions 8863
+c stat learnt_clauses 17726016
+c stat removed_clauses 17723697
+c stat reduct_checks 0
+c stat reduct_sat 0
+c stat reduct_unsat 0
+c stat reduct_limit 0
+c stat inner_conflicts 0
+c stat inner_decisions 0
+c stat inner_propagations 0
+c stat pr_learnt 0
+c stat pr_lits 0
+c stat filter_tests 0
+c stat filtered_clauses 0
+c stat reduct_clauses 0
+c stat reduct_lits 0
+c stat filter_propagations 0
+c stat max_reduct_vars 0
+c stat cost 17726016
+c stat time_reduct_build 0.000
+c stat time_inner 0.000
+c stat time_total 3600.051
+s UNKNOWN

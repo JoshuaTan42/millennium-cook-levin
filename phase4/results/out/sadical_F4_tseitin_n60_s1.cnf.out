@@ -1,0 +1,93 @@
+c SaDiCaL SAT Solver
+c Copyright (C) 2018 by Armin Biere JKU
+c
+c Version 00n 47bff7ef874226b4a00ebd20fedf88eb7c4a3a39
+c Compiler gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+c Options gcc -Wall -O3 -DNDEBUG -DNLOG
+c proof path '/mnt/d/PvsNP/phase4/results/proofs_sadical/F4/tseitin_n60_s1.sadical.dpr'
+c
+c non default options:
+c
+c --binary=false
+c --force=true
+c --witness=false
+c
+c parsing '/mnt/d/PvsNP/phase4/instances/f4/tseitin_n60_s1.cnf'
+c found 'p cnf 90 240' header
+c parsed DIMACS in 0.00 seconds
+c 
+c
+c   time      reduced redundant irredundant
+c       space  restarts  glue     variables
+c           level conflicts  size   remaining
+c
+c s 0.03 0.1 3.1 0 2 24 0 4.1 4.1 236 89 99%
+c s 0.05 0.1 2.9 0 3 41 0 3.9 3.9 230 87 97%
+c s 0.09 0.1 3.2 0 4 106 0 4.2 4.2 226 86 96%
+c s 0.11 0.1 3.5 0 8 120 0 4.5 4.5 222 85 94%
+c s 0.13 0.1 3.7 0 18 149 7 4.7 4.7 218 84 93%
+c s 0.21 0.1 4.0 0 44 469 8 5.0 5.0 214 83 92%
+c s 0.32 0.1 3.7 0 46 923 4 4.7 4.7 206 80 89%
+c s 0.33 0.1 3.7 0 56 947 5 4.7 4.7 200 78 87%
+c s 0.34 0.1 3.6 0 57 972 5 4.6 4.6 196 77 86%
+c s 0.45 0.1 3.9 0 74 1512 30 4.9 4.9 190 75 83%
+c s 0.45 0.1 3.9 0 74 1513 16 4.8 4.8 184 73 81%
+c - 0.56 0.1 4.7 1 79 2001 93 5.7 5.7 184 73 81%
+c - 1.65 0.2 4.6 2 82 4003 478 5.5 5.5 184 73 81%
+c s 1.72 0.2 4.4 2 82 4028 2 5.4 5.4 172 68 76%
+c s 1.81 0.2 4.3 2 84 4453 0 5.3 5.3 166 66 73%
+c s 1.84 0.2 4.3 2 86 4508 1 5.3 5.3 162 65 72%
+c s 1.85 0.2 4.3 2 88 4521 1 5.3 5.3 154 62 69%
+c s 1.85 0.2 4.3 2 89 4537 0 5.2 5.2 148 60 67%
+c s 1.86 0.2 4.2 2 90 4563 0 5.2 5.2 142 58 64%
+c s 1.87 0.2 4.2 2 91 4580 0 5.2 5.2 134 55 61%
+c
+c   time      reduced  redundant irredundant
+c       space   restarts    glue     variables
+c           level  conflicts    size   remaining
+c
+c s 1.88 0.2 4.2 2 92 4589 0 5.2 5.2 120 49 54%
+c s 1.89 0.2 4.2 2 96 4658 1 5.2 5.2 116 48 53%
+c s 1.90 0.2 4.2 2 98 4744 1 5.2 5.2 108 45 50%
+c s 1.91 0.2 4.1 2 99 4776 0 5.1 5.1 102 43 48%
+c s 1.92 0.2 4.1 2 100 4800 0 5.1 5.1 90 38 42%
+c s 1.93 0.2 4.1 2 103 4819 0 5.1 5.1 80 34 38%
+c s 1.93 0.2 4.1 2 104 4831 0 5.1 5.1 70 30 33%
+c s 1.93 0.2 4.1 2 110 4852 0 5.0 5.0 54 23 26%
+c s 1.94 0.2 4.0 2 114 4908 1 5.0 5.0 50 22 24%
+c s 1.94 0.2 4.0 2 116 4917 2 5.0 5.0 40 18 20%
+c s 1.94 0.2 4.0 2 116 4924 0 5.0 5.0 14 6 7%
+c s 1.94 0.2 4.0 2 116 4929 0 5.0 5.0 6 3 3%
+c 0 1.94 0.2 4.0 2 116 4931 0 5.0 5.0 6 0 0%
+c
+s UNSATISFIABLE
+c
+c simplifications:            30         164  conflicts/simplification  100%
+c reductions:                  2        2466  conflicts/reduction       100%
+c restarts:                  116          43  conflicts/restart         100%
+c conflicts:                4931        2538  conflicts/sec              76%
+c decisions:                2038        1049  decisions/sec              55%
+c propagations:           423009         0.2  millions/sec               86%
+c
+c pure:                        0           0% of look-aheads
+c look-ahead:               2038         100% of outer decisions         55%
+c pruned:                   1244          25% of outer conflicts         19%
+c generated reducts:        3135          40% satisfiable
+c average size:              108          48% of all clauses
+c pruning failed:           1891          60% per reduct
+c filter checks:           88493          26% of outer satisfied clauses
+c average filtered:          1.2           1% per reduct
+c assumed literals:       200485         2.3  per filter check
+c
+c collected clauses:        0.06 MB      100% of allocated clauses        1%
+c allocated clauses:        0.06 MB        7% of allocated memory         1%
+c maximum heap:             0.12 MB        6% of resident set size       61%
+c
+c looking:                  0.02 sec       1% of process time
+c filtering:                0.68 sec      35% of process time
+c pruning:                  1.87 sec      96% of process time
+c simplifying:              0.01 sec       0% of process time
+c
+c resident set size:        2.07 MB
+c total process time:       1.94 sec
+RC=0

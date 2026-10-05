@@ -1,0 +1,21 @@
+== case35 sdcl 
+c stat conflicts 2 c stat restarts 0 c stat reductions 0 c stat reduct_checks 8153 c stat pr_learnt 4071 c stat cost 30005 c stat time_total 120.035 s UNKNOWN 
+== case92 sdcl 
+c stat conflicts 2 c stat restarts 0 c stat reductions 0 c stat reduct_checks 9567 c stat pr_learnt 4777 c stat cost 23524 c stat time_total 120.008 s UNKNOWN 
+== case35 sdcl --prunes-as-conflicts
+c stat conflicts 15 c stat restarts 29 c stat reductions 2 c stat reduct_checks 11767 c stat pr_learnt 5758 c stat cost 23403 c stat time_total 120.023 s UNKNOWN 
+== case92 sdcl --prunes-as-conflicts
+c stat conflicts 6 c stat restarts 28 c stat reductions 2 c stat reduct_checks 10999 c stat pr_learnt 5333 c stat cost 19967 c stat time_total 120.010 s UNKNOWN 
+== php_9_8 sdcl 
+c stat conflicts 162 c stat restarts 1 c stat reductions 0 c stat reduct_checks 4767 c stat inner_conflicts 9201 c stat pr_learnt 2276 c stat cost 14130 c stat time_total 40.319 s UNSATISFIABLE 
+== php_9_8 sdcl --prunes-as-conflicts
+c stat conflicts 484 c stat restarts 20 c stat reductions 1 c stat reduct_checks 7800 c stat inner_conflicts 25543 c stat pr_learnt 3502 c stat cost 33827 c stat time_total 99.073 s UNSATISFIABLE 
+== mchess_8 sdcl 
+c stat conflicts 178 c stat reductions 0 c stat reduct_checks 1020 c stat pr_learnt 382 c stat cost 2030 c stat time_total 1.867 s UNSATISFIABLE 
+== mchess_8 sdcl --prunes-as-conflicts
+c stat conflicts 119 c stat reductions 0 c stat reduct_checks 1069 c stat pr_learnt 447 c stat cost 2016 c stat time_total 2.308 s UNSATISFIABLE 
+== tseitin_n40_s0 sdcl 
+c stat conflicts 0 c stat reductions 0 c stat reduct_checks 20678 c stat pr_learnt 10334 c stat cost 35465 c stat time_total 900.295 s UNKNOWN 
+== tseitin_n40_s0 sdcl --prunes-as-conflicts
+c stat conflicts 26 c stat reductions 5 c stat reduct_checks 20344 c stat pr_learnt 10015 c stat cost 36282 c stat time_total 348.172 s UNSATISFIABLE 
+COMPARE DONE

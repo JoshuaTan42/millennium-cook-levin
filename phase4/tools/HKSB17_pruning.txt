@@ -1,0 +1,793 @@
+PRuning Through Satisfaction ⋆
+Marijn J.H. Heule 1, Benjamin Kiesl 2, Martina Seidl 3, and Armin Biere 3
+1 Department of Computer Science, The University of Texas at Austin
+2 Institute of Information Systems, TU Wien
+3 Institute for Formal Models and Veriﬁcation, JKU Linz
+Abstract. The classical approach to solving the satisﬁability problem of
+propositional logic prunes unsatisﬁable branches from the search space.
+We prune more agressively by also removing certain branches for which
+there exist other branches that are more satisﬁable. This is achieved by
+extending the popular conﬂict-driven clause learning (CDCL) paradigm
+with so-called PR-clause learning . We implemented our new paradigm,
+named satisfaction-driven clause learning (SDCL), in the SAT solver
+Lingeling. Experiments on the well-known pigeon hole formulas show
+that our method can automatically produce proofs of unsatisﬁability
+whose size is cubic in the number of pigeons while plain CDCL solvers
+can only produce proofs of exponential size.
+1 Introduction
+Conﬂict-driven clause learning (CDCL) [11] is the leading paradigm for solving
+the satisﬁability problem of propositional logic (SAT). It is well-known that
+CDCL solvers are able to generate resolution proofs but this useful ability comes
+at a price because it means that CDCL solvers suﬀer from the same restrictions
+as the resolution proof system. For instance, there are seemingly simple formula
+families that admit only exponential-size resolution proofs, implying that solving
+these formulas with CDCL takes exponential time [14].
+To deal with the limitations of resolution, stronger proof systems have been
+proposed [19]. Popular examples of such proof systems are extended resolu-
+tion [18] and an even more general system based on blocked clauses [10]. These
+systems extend resolution by allowing the introduction of short deﬁnition clauses
+over new variables. As shown by Cook [3], the introduction of these clauses al-
+ready suﬃces to obtain short proofs of the famous pigeon hole formulas—a class
+of formulas known for admitting no short resolution proofs [4]. But the intro-
+duction of new variables has a downside: The search space of possible variables
+is inﬁnite in general, which complicates the search for useful deﬁnition clauses.
+This may explain the limited success of GlucosER [1], a CDCL solver that uses
+extended resolution. To cope with this drawback, we recently introduced a proof
+system, called PR (short for propagation redundancy), that allows for short proofs
+of the pigeon hole formulas without the need to introduce new variables [6].
+⋆ Supported by the National Science Foundation under grant CCF-1526760 and by
+the Austrian Science Fund (FWF) under projects S11409-N23 and W1255-N23.
+In this paper, we enhance the CDCL paradigm by extending it in such a
+way that it can exploit the strengths of the PR proof system. To do so, we
+introduce satisfaction-driven clause learning (SDCL), a SAT solving paradigm
+that extends CDCL as follows: If the usual unit propagation does not lead to a
+conﬂict, we do not immediately decide for a new variable assignment (as would
+be the case in CDCL). Instead, we ﬁrst try to prune the search space of possible
+truth assignments by learning a so-called PR clause.
+Intuitively, a PR clause is a clause that might not be implied by the current
+formula but whose addition preserves satisﬁability. As we show in this paper,
+deciding whether a given clause is a PR clause is NP-complete. We therefore use
+an additional SAT solver for ﬁnding such clauses. Finding useful PR clauses is a
+non-trivial problem as it is not immediately clear which clauses should be added
+to improve solver performance. To gain further insight, we develop a strong
+theory that relates our SAT encoding for ﬁnding PR clauses with two concepts
+from the literature: autarkies [9] and set-blocked clauses [8].
+The main contributions of this paper are as follows: (1) We introduce satis-
+faction-driven clause learning, a paradigm that extends CDCL by performing
+the addition of PR clauses. (2) We prove that the problem of deciding whether a
+given clause is a PR clause is NP-complete. (3) We use a SAT solver for ﬁnding
+PR clauses and show that the corresponding SAT encoding is strongly related to
+the concepts of autarkies and set-blocked clauses. (4) We implement SDCL as an
+extension of the award-winning SAT solver Lingeling [2], which is developed
+by the last author of this paper. An experimental evaluation shows that our
+approach can generate proofs for much larger pigeon hole formulas than two
+existing tools based on extended resolution.
+2 Preliminaries
+Below we present the most important background concepts related to this paper.
+Propositional logic. We consider propositional formulas in conjunctive normal
+form (CNF), which are deﬁned as follows. A literal is either a variable x (a
+positive literal) or the negation x of a variable x (a negative literal). The com-
+plementary literal l of a literal l is deﬁned as l =x if l =x and l =x if l =x.
+Accordingly, for a set L of literals, we deﬁne L ={l| l∈ L}. A clause is a
+disjunction of literals. A formula is a conjunction of clauses. We view clauses
+as sets of literals and formulas as sets of clauses. For a set L of literals and a
+formulaF , we deﬁneFL ={C∈F|C∩L⁄=∅}. For a literal, clause, or formula
+F , var(F ) denotes the variables in F . For convenience, we treat var(F ) as a
+variable if F is a literal, and as a set of variables otherwise.
+Satisﬁability. An assignment is a function from a set of variables to the truth
+values 1 (true) and 0 (false). An assignment is total w.r.t. a formula if it assigns
+a truth value to all variables occurring in the formula; otherwise it is partial. A
+literall is satisﬁed (falsiﬁed) by an assignmentα ifl is positive andα(var(l)) = 1
+(α(var(l)) = 0, resp.) or if it is negative andα(var(l)) = 0 (α(var(l)) = 1, resp.).
+We often denote assignments by sequences of literals they satisfy. For instance,
+xy denotes the assignment that assigns 1 to x and 0 to y. For an assignment α,
+var(α) denotes the variables assigned by α. Further,αL denotes the assignment
+obtained from α by ﬂipping the truth values of the literals in L. A clause is
+satisﬁed by an assignmentα if it contains a literal that is satisﬁed by α. Finally,
+a formula is satisﬁed by an assignment α if all its clauses are satisﬁed by α. A
+formula is satisﬁable if there exists an assignment that satisﬁes it.
+Formula simpliﬁcation. We denote the empty clause by ⊥ and the satisﬁed
+clause by⊤. Given an assignment α and a clause C, we deﬁne C|α =⊤ if α
+satisﬁesC; otherwise,C|α denotes the result of removing from C all the literals
+falsiﬁed by α. For a formula F , we deﬁne F|α ={C|α|C∈F and C|α⁄=⊤}.
+We say that an assignment α touches a clause C if var(α)∩ var(C)⁄=∅. Given
+an assignment α, the clause {x| α(x) = 0}∪{ x| α(x) = 1} is the clause that
+blocks α. A unit clause is a clause with only one literal. The result of applying
+the unit clause rule to a formula F is the formula F|l where (l) is a unit clause
+inF . The iterated application of the unit clause rule to a formula, until no unit
+clauses are left, is called unit propagation. If unit propagation yields the empty
+clause⊥, we say that it derived a conﬂict.
+Formula relations. Two formulas are logically equivalent if they are satisﬁed by
+the same assignments. Two formulas aresatisﬁability equivalent if they are either
+both satisﬁable or both unsatisﬁable. Given two formulas F and F′, we denote
+by F ⊨ F′ that F implies F′, i.e., all assignments satisfying F also satisfy F′.
+Furthermore, byF⊣1 F′ we denote that for every clause (l1∨···∨ ln)∈F′, unit
+propagation on F∧ (l1)∧···∧ (ln) derives a conﬂict. If F ⊣1 F′, we say that
+F implies F′ through unit propagation. For example, (x)∧ (y)⊣1 (x∨z)∧ (y),
+since unit propagation of the unit clauses (x) and (z) derives a conﬂict with (x),
+and unit propagation of (y) derives a conﬂict with (y).
+Conﬂict-driven clause learning (CDCL) in a nutshell. To evaluate the satisﬁa-
+bility of a formula, a CDCL solver iteratively performs the following operations:
+First, the solver performs unit propagation. Then, it tests whether it has reached
+a conﬂict, meaning that the formula is falsiﬁed by the current assignment. If no
+conﬂict has been reached and all variables are assigned, the formula is satisﬁ-
+able. Otherwise, the solver chooses an unassigned variable based on some de-
+cision heuristic, assigns a truth value to it, and continues by again performing
+unit propagation. If, however, a conﬂict has been reached, the solver learns a
+short clause that prevents it from repeating similar (bad) decisions in the fu-
+ture (“clause learning”). In case this clause is the (unsatisﬁable) empty clause,
+the unsatisﬁability of the formula can be concluded. In case it is not the empty
+clause, the solver revokes some of its variable assignments (“backjumping”) and
+then repeats the whole procedure again by performing unit propagation.
+3 Searching for Propagation-Redundant Clauses
+As already mentioned in the introduction, the addition of so-called PR clauses
+(short for propagation-redundant clauses) to a formula can lead to short proofs
+for hard formulas without the introduction of new variables. In this section,
+we present an approach for ﬁnding PR clauses. Although PR clauses are not
+necessarily implied by the formula, their addition preserves satisﬁability [6]. The
+intuitive reason for this is that the addition of a PR clause prunes the search
+space of possible assignments in such a way that there still remain assignments
+under which the formula is as satisﬁable as under the pruned assignments. In the
+following deﬁnition, assignments can be partial with respect to the formula [6]:
+Deﬁnition 1. Let F be a formula, C a clause, and α the assignment blocked
+by C. Then, C is propagation redundant ( PR) with respect to F if there exists
+an assignment ω such that ω satisﬁes C and F|α⊣1 F|ω.
+The clause C can be seen as a constraint that prunes from the search space
+all assignments that extend α. Since F|α implies F|ω, every assignment that
+satisﬁesF|α also satisﬁesF|ω, meaning that F is at least as satisﬁable under ω
+as it is underα. Moreover, sinceω satisﬁesC, it must disagree withα on at least
+one variable. We refer to ω as the witness, since it witnesses the propagation-
+redundancy of the clause. Consider the following example [6]:
+Example 1. Let F = (x∨y)∧ (x∨y)∧ (x∨z), C = (x), and let ω = xz be
+an assignment. Then, α = x is the assignment blocked by C. Now, consider
+F|α = (y) and F|ω = (y). Clearly, unit propagation on F|α∧ (y) derives a
+conﬂict. Thus, F|α⊣1 F|ω and so C is propagation redundant w.r.t. F . ⊓ ⊔
+Most known types of redundant clauses are PR clauses [6]. This includes blocked
+clauses [10], set-blocked clauses [8], resolution asymmetric tautologies (RATs) [7],
+and many more. As a new result, we show next that deciding whether a given
+clause is a PR clause is NP-complete, which complicates the search forPR clauses.
+Deﬁnition 2. The PR problem is the following decision problem: Given a for-
+mula F and a clause C, decide if C is propagation-redundant w.r.t. F .
+Theorem 1. The PR problem is NP-complete.
+Proof. Membership in NP: Let α be the assignment blocked by C. To decide
+whether or not C is propagation-redundant with respect to F , just guess an
+assignmentω and check if F|α⊣1 F|ω.
+NP-hardness: We present a polynomial reduction from the SAT problem.
+Let F be an input formula (in CNF) for the SAT problem and let v be a fresh
+variable that does not occur in F . Now, let C = v and obtain the formula F′
+from F by adding to each clause the literal v. We show that F is satisﬁable if
+and only if C is propagation-redundant with respect to F′.
+For the “only if” direction, assume that F is satisﬁed by some assignment ω
+and let α = v be the assignment blocked by C. Now, obtain a new assignment
+ω′ from ω by extending it as follows: ω′(x) =ω(x) if x∈ var(F ) and ω′(v) = 0.
+Then, ω′ disagrees with α on v. Moreover, since ω satisﬁes F , it satisﬁes F′.
+Hence, F′|ω′ =∅ and thus F′|α⊣1 F′|ω′ trivially holds. It follows that C is
+propagation-redundant with respect to F′.
+For the “if” direction, assume that C is propagation-redundant with respect
+to F′ and let α = v be the assignment blocked by C. Then, there exists an
+assignment ω′ such that F′|α⊣1 F′|ω′ and ω′ disagrees with α, meaning that
+ω′(v) = 0. Since every clause in F′ containsv, it follows that α satisﬁes F′ and
+so it must be the case that ω′ satisﬁes F′. Since ω′(v) = 0 and F′|v = F , it
+follows that ω′ satisﬁes F . ⊓ ⊔
+Since the identiﬁcation of PR clauses is NP-hard, we use a SAT solver to search
+for PR clauses. We thus next introduce a SAT encoding which, for a given formula
+F and an assignment α, tries to ﬁnd a witness ω that certiﬁes the propagation
+redundancy of the clause that blocks α. We obtain the encoding, which we call
+the positive reduct, by selecting only a subpart of F :
+Deﬁnition 3. LetF be a formula,α an assignment, andC the clause that blocks
+α. The positive reductp(F,α ) ofF with respect toα is the formula G∧C, where
+G is obtained from F by ﬁrst removing all clauses that are not satisﬁed by α and
+then removing from the remaining clauses all literals that are not assigned by α.
+Example 2. Let F = (x∨y∨z)∧ (w∨y)∧ (w∨z) and α = xy z. Then, the
+positive reductp(F,α ) ofF w.r.t.α is the formula (x∨y∨z)∧(z)∧(x∨y∨z). ⊓ ⊔
+We next show that the positive reduct is satisﬁable if and only if the clause
+blocked byα is a set-blocked clause [8] (see Deﬁnition 4 below), meaning that it
+is also a PR clause [6] (note that deciding set-blockedness of a clause is also NP-
+complete [8]). We show later that we can usually shorten this set-blocked clause
+and thereby turn it into a PR clause that might not be set-blocked anymore.
+Deﬁnition 4. A clause C is set-blocked by a non-empty set L⊆ C in a for-
+mula F if, for every clause D∈ FL, the clause (C\L)∪L∪D contains two
+complementary literals.
+We say that a clause is set-blocked in a formula F if it is set-blocked by some of
+its literals in F . Consider the following example [8]:
+Example 3. LetC = (x∨y) andF = (x∨y)∧ (x∨y). Then,C is set-blocked by
+L ={x,y}: Clearly, FL =F and C\L =∅. Therefore, for D1 = (x∨y) we get
+that (C\L)∪L∪D1 = (x∨y∨y) contains two complementary literals and the
+same holds for D2 = (x∨y), for which we get (C\L)∪L∪D2 = (x∨y∨x). ⊓ ⊔
+Assume we are given a clauseC which blocks some assignmentα. Our new result
+given in the following theorem implies thatC is set-blocked in a formulaF if and
+only if the positive reduct p(F,α ) is satisﬁable. Recall that for an assignment α
+and a set of literals L, αL denotes the assignment obtained from α by ﬂipping
+the truth values of the literals in L:
+Theorem 2. Let F be a formula, α an assignment, and C the clause that
+blocks α. Then, C is set-blocked by L ⊆ C in F if and only if αL satisﬁes
+the positive reduct p(F,α ).
+Proof. For the “only if” direction, assume that C is set-blocked by L in F . We
+show that αL satisﬁes p(F,α ). Clearly,αL satisﬁes C since αL is obtained from
+α by ﬂipping the truth values of the literals in L. Now, let D be a clause in
+p(F,α ) that is diﬀerent from C. We show that D is satisﬁed by αL. By the
+deﬁnition of p(F,α ), D is satisﬁed by α and thus, if D contains no literals of
+L (i.e., D ⁄∈ FL), it is also satisﬁed by αL. Assume therefore that D ∈ FL.
+Then, since C is set-blocked by L inF , the clause (C\L)∪L∪D contains two
+complementary literals.
+Since C cannot contain two complementary literals (because it blocks the
+assignment α), there must be a literal l ∈ D such that one of the following
+holds: (1) l∈D, (2) l∈C\L, (3) l∈L. In the ﬁrst case, D is clearly satisﬁed
+byαL. In the second case, since αL diﬀers from α only on literals in L and since
+α falsiﬁes C, it follows that αL falsiﬁes l and thus it satisﬁes l. Finally, in the
+third case, it follows that l∈ L and so αL satisﬁes l since it satisﬁes all the
+literals in L. It follows that D is satisﬁed by αL. Therefore, αL satisﬁesp(F,α ).
+For the “if” direction, assume that αL satisﬁes p(F,α ). We show that L
+set-blocks C in F . Let D∈ FL. Since α falsiﬁes C, it falsiﬁes L. Therefore, α
+satisﬁesL and thusp(F,α ) contains the clauseD′, obtained fromD by removing
+all literals that are not assigned by α. By assumption, αL satisﬁes D′ and since
+it falsiﬁes L, it must satisfy some literal l∈ D′\L. But then l∈ C\L and
+thus the clause (C\L)∪L∪D contains two complementary literals. Hence, C
+is set-blocked by L in F . ⊓ ⊔
+Thus, if the SAT solver ﬁnds an assignment α for which the positive reduct
+with respect to F is satisﬁable, then the clause that blocks α is a set-blocked
+clause and so its addition toF preserves satisﬁability. Even better, when using a
+CDCL solver, we can usually add a shorter clause: Ifα is the current assignment
+of the solver, it consists of two parts—a part αd of variable assignments that
+were decisions by the solver and a partαu of assignments that were derived from
+these decisions via unit propagation. This means that F|αd⊣1 F|α. Since C is
+set-blocked—and thus propagation-redundant—with respect toF , we know that
+there exists some assignment ω such that F|α⊣1 F|ω. But then F|αd⊣1 F|ω
+and so the clause that blocks αd, which is a subclause of the clause that blocks
+α, is a PR clause with respect to F . We conclude:
+Theorem 3. Let C be a PR clause w.r.t. a formula F and let α = αd∪αu be
+the assignment blocked by C. Assume furthermore that the assignments in αu
+are derived via unit propagation on F|αd. Then, the clause that blocks αd is
+propagation-redundant w.r.t. to F .
+We can thus eﬃciently ﬁnd short PR clauses by using an additional SAT solver
+for ﬁnding a set-blocked clause and then shortening the clause by removing
+literals that are not decision literals.
+4 Conditional Autarkies
+We have seen that the positive reduct can be used to determine whether a
+clause is set-blocked with respect to a given formula. As we show in this section,
+searching for satisfying assignments of the positive reduct is actually the same
+as searching for certain kinds of partial assignments [12]:
+Deﬁnition 5. A partial assignment ω is an autarky for a formula F if ω sat-
+isﬁes every C∈F for which var (ω)∩ var(C)⁄=∅.
+In other words, an autarky is a (partial) assignment that satisﬁes every clause
+it touches. For example, if a literal l is pure in a formula (i.e., l does not occur
+in the formula), then the assignment ω = l is an autarky for the formula. But
+also the empty assignment as well as every assignment that satisﬁes the whole
+formula are autarkies. If we are given an autarkyω for a formulaF , we can useω
+to simplifyF becauseF|ω andF are satisﬁability equivalent, although they are
+not necessarily logically equivalent [12]. Autarkies yield PR clauses as follows:
+Theorem 4. Let F be a formula and ω an autarky for F . Then, every clause
+C such that ω satisﬁesC and var (C)⊆ var(ω) is a PR clause with respect to F .
+Proof. Let α be the assignment blocked by C. We show that F|α⊣1 F|ω. Let
+D|ω∈ F|ω for D∈ F . Since D is not satisﬁed by ω, it follows that D is not
+touched by ω and thus—since var(α)⊆ var(ω)—it is also not touched by α.
+Hence, D|α = D|ω = D is contained in F|α and so F|α⊣1 D|ω. It follows
+that C is a PR clause with respect to F . ⊓ ⊔
+Suppose a SAT solver has found a partial assignment ωcon for some formula F .
+We can then try to search for autarkies in the simpliﬁed formula F|ωcon. Given
+an autarky ωaut forF|ωcon, we call ω =ωcon∪ωaut a conditional autarky forF :
+Deﬁnition 6. A partial assignment ω is a conditional autarky for a formula F
+if there exists a subassignment ωcon⊂ω such that ω is an autarky for F|ωcon.
+We call ωcon the conditional part of ω.
+Ifω\ωcon assigns exactly one variable, we call the literal satisﬁed by ω\ωcon a
+conditional pure literal with respect to ωcon.
+Example 4. Consider the formulaF = (x∨y)∧ (x∨z)∧ (y∨z). The assignment
+ω = yz is a conditional autarky with conditional part ωcon = y: By applying
+ωcon to F , we obtain the formula F|y = (x)∧ (x∨z). The only clause of F|y
+that is touched by ω is the clause (x∨z), which is satisﬁed ω. The literal z is a
+conditional pure literal with respect to ωcon. ⊓ ⊔
+Note that every autarky ω is a conditional autarky where ωcon is the empty
+assignment. However, as illustrated by Example 4, the converse does not hold:
+Although the assignment ω = yz is a conditional autarky for F , it is not an
+autarky for F because the clause (x∨y) is touched but not satisﬁed by ω. The
+following theorem shows that satisfying assignments of the positive reduct are
+nothing else than conditional autarkies:
+Theorem 5. LetF be a formula and α a partial assignment. Then, an assign-
+ment ω over var (α) satisﬁes the positive reduct p(F,α ) if and only if ω is a
+conditional autarky for F with ωcon =α∩ω.
+Proof. For the “only if” direction, assume that ω is a satisfying assignment of
+p(F,α ). First, note that ω disagrees with α on at least one variable since ω
+satisﬁes the clause that blocks α. Therefore, ωcon⊂ω. It remains to show that
+ω is an autarky for F|ωcon. Let D|ωcon be a clause in F|ωcon such that D∈F
+and assume that D|ωcon is touched by ω. Since var(ω) = var(α), it follows
+that D|ωcon is also touched by α. Now, if α does not satisfy D|ωcon, then ω
+satisﬁes D|ωcon since ω disagrees with α on all variables in var(α)\ var(ωcon).
+In contrast, if α satisﬁes D|ωcon, then the clause D′, which contains only those
+literals ofD that are touched byα, is contained in p(F,α ). Hence,ω satisﬁesD′
+and thus it satisﬁes D|ωcon. It follows that ω is a conditional autarky for F .
+For the “if” direction, assume that ω is a conditional autarky for F with
+ωcon = α∩ω and let D′∈ p(F,α ). If D′ is the clause that blocks α, then ω
+satisﬁesD′ sinceω disagrees with α (note that by deﬁnition ωcon⊂ω). Assume
+thus that D′ is not the clause that blocks α. Then, there exists a clause D∈F
+such that α satisﬁes D and D′ is obtained from D by removing all literals
+that are not assigned by α. Assume now that ωcon does not satisfy D′. Then,
+D|ωcon∈F|ωcon (note thatωcon cannot satisfyD since the literals inD\D′ are
+not assigned byα and thus also not byω). Sinceα satisﬁesD, it satisﬁesD|ωcon.
+Hence, D|ωcon is touched by α and thus also by ω. But then ω satisﬁes D|ωcon
+since it is a conditional autarky for F . Hence, since D′ contains all literals of D
+that are assigned by α (and thus by ω),ω satisﬁesD′. It follows that ω satisﬁes
+p(F,α ). ⊓ ⊔
+Combining Theorem 5 with Theorem 2, which states that a clause C is set-
+blocked by L⊆ C in a formula F if and only if αL satisﬁes p(F,α ), we obtain
+the following relationship between conditional autarkies and set-blocked clauses:
+Corollary 1. Let F be a formula, C a clause, and α the assignment blocked
+by C. Then, C is set-blocked by L⊆ C in F if and only if αL is a conditional
+autarky for F with conditional part αL∩α.
+This correspondence between set-blocked clauses and conditional autarkies re-
+veals an interesting relationship between set-blocked clauses and PR clauses:
+Theorem 6. Let C∨L be a clause that is set-blocked by L with respect to a
+formula F . Any clause C∨l with l∈L is a PR clause with respect to F .
+Proof. Let α be the assignment that is blocked by C∨l. We need to show that
+there exists an assignment ω such that ω satisﬁes C∨l and F|α⊣1 F|ω. Let
+ω be αL. Clearly, ω satisﬁes C∨l on l. Moreover, we know from Theorem 1
+that ω is a conditional autarky for F with conditional part ωcon =α∩ω. Now,
+let F′ = F|ωcon, α′ = α\ωcon, and ω′ = ω\ωcon. Then, F|α = F′|α′ and
+F|ω =F′|ω′. Since var(α′)⊆ var(ω′) and ω′ is an autarky for F′ (Lemma 4),
+it follows that F′|α′⊣1 F′|ω′. But then F|α⊣1 F|ω and thus C∨l is a PR
+clause w.r.t. F . ⊓ ⊔
+SDCL (formulaF )
+1 α :=∅
+2 forever do
+3 α := Simplify (F,α )
+4 if F|α contains a falsiﬁed clause then
+5 C := AnalyzeConﬂict ()
+6 if C is the empty clause then return unsatisﬁable
+7 F :=F∪{C}
+8 α := BackJump (C,α )
+9 else if p(F,α ) is satisﬁable then
+10 C := AnalyzeWitness ()
+11 F :=F∪{C}
+12 α := BackJump (C,α )
+13 else
+14 l := Decide ()
+15 if l is undeﬁned then return satisﬁable
+16 α :=α∪{l}
+Fig. 1. Pseudo-code of the SDCL procedure
+This basically means that if a clauseC∨L is set-blocked byL in a formulaF , we
+can add any clause C∨l such thatl∈L toF without aﬀecting its satisﬁability.
+Example 5. Consider the formula F = (x∨y∨z)∧ (x∨y∨z)∨ (x∨y∨z). The
+clause (x∨y∨z) is set-blocked by{x,y} inF and so (x∨z) and (y∨z) are PR
+clauses w.r.t. F as both α =xyz and ω =xy z are autarkies for F . Therefore,
+the addition of (x∨z) or (y∨z) to F preserves satisﬁability. ⊓ ⊔
+We have seen diﬀerent approaches to ﬁnding and addingPR clauses to a formula.
+In the following, we make use of these approaches when introducing our extension
+of conﬂict-driven clause learning.
+5 Satisfaction-Driven Clause Learning
+Our satisfaction-driven clause learning (SDCL) paradigm extends the CDCL
+paradigm in the following way: Whenever the CDCL solver is required to pick a
+new decision, we ﬁrst check whether the current assignment and all its extensions
+can be pruned from the search space by learning the clause which contains the
+negation of all previous decisions. As explained in Section 3, such a learned
+clause can be obtained by searching for a satisfying assignment of the positive
+reduct with respect to the formula and the current assignment of the solver.
+Figure 1 shows the pseudo code of the SDCL procedure. Removing lines 9 to
+12 would result in the classical CDCL algorithm, which consists of three phases:
+simplify, learn, and decide. The simplify phase uses unit propagation to extend
+the current assignment α (line 3). The main reasoning of CDCL is performed
+in the learn phase, which kicks in when a conﬂict is reached, i.e., when a clause
+is falsiﬁed by the current assignment α (i.e., when the if condition in line 4 is
+true). In this case, a so-called conﬂict clause is computed by the AnalyzeConﬂict
+procedure (line 5). A conﬂict clause serves as a constraint that should prevent
+the solver from investigating unsatisﬁable parts of the search space in the future
+by encoding the reasons for the current conﬂict. The naive approach for this
+is to use the clause that blocks α as conﬂict clause. A stronger conﬂict clause
+can be obtained by computing the conﬂict clause that blocks only the decision
+literals of α. In practice, there are several approaches for learning even smaller
+clauses [11,17].
+If the conﬂict clause is the empty clause, then the solver can conclude that
+the formula is unsatisﬁable (line 6); otherwise, the clause is added to the formula
+(line 7). After adding the conﬂict clause to the formula ( clause learning ), the
+solver backjumps (line 8) to the level where the conﬂict clause contains a literal
+that is not falsiﬁed. Finally, the decide phase (lines 14 to 16) extends α by
+selecting a literal and making it true. In case all variables are assigned and no
+clause is falsiﬁed, the formula is identiﬁed as satisﬁable (line 15).
+The SDCL related lines (9 to 12) work as follows: If the current assignment
+α does not lead to a conﬂict (i.e., the if condition on line 4 fails), we check
+(optionally in a limited way) whether the positive reduct p(F,α ) is satisﬁable.
+If not, a new decision is made (line 14). Otherwise, we conclude that the clause
+that blocks α is set-blocked and thus redundant with respect to F . Similar to
+the AnalyzeConﬂict procedure, which shortens conﬂict clauses in practice, we
+can learn a clause that is smaller than the one that blocks α. This is done in
+the AnalyzeWitness procedure, which analyzes the assignment that satisﬁes the
+positive reduct (the witness). As shown in Theorem 3, we can add the clause
+that blocks only the decision literals ofα since it is a PR clause. Alternatively, we
+can add PR clauses based on conditional autarkies as described in Theorem 6.
+After the clause addition, we backjump by unassigning all variables up to the
+last decision (line 12) and continue with a new iteration of the procedure.
+A crucial part of the algorithm is the underlying decision heuristic of the
+Decide procedure. Most practical implementations of CDCL use the so-called
+VSIDS (Variable State Independent Decaying Sum ) [13] heuristic which selects
+the variable that occurs most frequently in recent conﬂict clauses. In our early
+experiments, VSIDS turned out to be a poor heuristic for SDCL. A possible
+explanation is that VSIDS can select variables as early decisions that occur
+in diﬀerent parts of the formula, thereby making it impossible to satisfy the
+resulting positive reduct.
+In order to select variables in the same part of the formula, we propose the
+autarky decision heuristic : Given a formula F and the current assignment α,
+the autarky decision heuristic selects the variable that occurs most frequently in
+clauses in F|α\F (i.e., in the clauses of F that are touched but not satisﬁed
+by α). Occurrences are weighted based on the length of clauses—the smaller
+the clause, the larger the weight. If F|α\F is empty, then α is an autarky for
+F , hence the name. So this heuristic tries to guide the solver to an autarky.
+We expect that this heuristic helps with ﬁnding conditional autarkies—and thus
+with satisfying the positive reduct formulas—more eﬃciently.
+The autarky heuristic can only be used for non-empty assignments. We there-
+fore need a special heuristic for the ﬁrst decision. This turned out to be chal-
+lenging and is still part of current research. A heuristic that works really well for
+the pigeon hole formulas is to select the variable x that is least constrained, i.e.,
+either x or x occurs least frequently in the formula. The rationale behind this
+heuristic is that it creates an initial positive reduct with as few unit clauses as
+possible: Notice that a clause which is satisﬁed by the ﬁrst decision becomes a
+unit clause in the positive reduct unless unit propagation assigns other literals in
+that clause. Such a unit clause makes it impossible to satisfy the positive reduct
+for the ﬁrst decision. Also, this heuristic ﬁnds pure literals and ﬁxes them using
+a PR clause: The positive reduct has only the clause that blocks the current
+assignment and can thus be trivially satisﬁed. However, it is unlikely that this
+heuristic is eﬀective for a wide spectrum of benchmark families.
+In the next section, we illustrate how short proofs of the pigeon hole formulas
+can be produced manually by combining the addition of set-blocked clauses
+with resolution. With this we want to illustrate why short proofs can be found
+automatically by our implementation of SDCL.
+6 Solving Pigeon Hole Formulas using SDCL
+A pigeon hole formula PHPn intuitively encodes that n + 1 pigeons have to be
+assigned to n holes such that no hole contains more than one pigeon. In the
+encoding, a variable xi,k denotes that pigeon i is assigned to hole k:
+PHPn :=
+⋀
+1≤i≤n+1
+Pi
+z }| {
+(xi,1∨···∨ xi,n) ∧
+⋀
+1≤i<j≤n+1
+⋀
+1≤k≤n
+H k
+i,j
+z }| {
+(xi,k∨xj,k) (1)
+Clearly, pigeon hole formulas are unsatisﬁable. Following Haken [4], we use array
+notation for clauses: Every clause is represented by an array of n + 1 columns
+and n rows. An array contains a “ ” (“ ”) in the i-th column and k-th row
+if and only if the variable xi,k occurs positively (negatively, respectively) in the
+corresponding clause. The representation ofPHPn in array notation has for every
+clause (xi,1∨···∨ xi,n), an array in which the i-th column is ﬁlled with “ ”.
+Moreover, for every clause (xi,k∨xj,k), there is an array that contains two “ ”
+in row k—one in column i and the other in column j. For instance, PHP4 in
+array notation looks as follows:
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+P1 P2 P3 P4 P5
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+...
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+H 1
+1,2 H 1
+1,3 H 4
+3,5 H 4
+4,5
+We use array notation to describe a method for learning binary clauses. For
+the explanation, we pick (x1,5∨x4,1) in PHP4 as it allows an easy formulation of
+the proof of pigeon hole formulas. The proof idea is similar to that of Cook: We
+reduce a pigeon hole formula PHPn to the smaller formula PHPn−1. The main
+diﬀerence is that in our case PHPn−1 still uses the same variables as PHPn.
+Again, we pick the clauseC = (x1,5∨x4,1)∈ PHP4. Letαd =x1,5x4,1 be the
+assignment blocked by C. Then, α = x1,1x1,2x1,3x1,4x1,5x4,1x4,2x4,3x4,4x4,5
+is obtained from αd by applying unit propagation. Let C′ be the clause that
+blocks α. The clauses and assignments in array notation are as follows:
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+C C ′ αd α
+Next, we construct the positive reduct p(PHP4,α ). The positive reduct contains
+C′ and all clauses of PHP4 that are satisﬁed by α, which are the following 22
+clauses: P1,P 5,H 1
+1,2,...,H 1
+4,5,H 4
+1,2,...H 4
+4,5. From these clauses, we remove the
+literals that are not assigned by α and obtain the positive reduct p(PHP4,α ):
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+C′ P′
+1 P′
+5
+1 2 3 4 5
+1
+2
+3
+4
+...
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+...
+1 2 3 4 5
+1
+2
+3
+4
+H 1
+1,2 H 1
+4,5 H 4
+1,2 H 4
+4,5
+The positive reduct is satisﬁed by the following witness and conditional autarky:
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+ω ω con
+According to Theorem 3, we can learn clause C and, according to Theorem 6,
+we can learn the clauses A1, A2, A3, and A4:
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+1 2 3 4 5
+1
+2
+3
+4
+C A 1 A2 A3 A4
+After learning ( x1,5∨x4,1), we can learn the clause ( x2,5∨x4,1) in a similar
+way. Now the assignment αd =x4,1 can be extended using unit propagation to
+obtain α =x3,1x3,2x3,3x3,4x3,5x4,1x4,2x4,3x4,4x4,5 The positive reduct of the
+extended formula,p(PHP4∧(x1,5∨x4,1)∧(x2,5∨x4,1),α ), is satisﬁable, allowing
+us to learn the unit clause (x4,1). By repeating the same procedure three times,
+we can learn the clauses ( x4,2), (x4,3), and ( x4,4) in a similar way. Now the
+clauses P1 to P4 can be shortened because their last literal is falsiﬁed. We have
+thus reduced PHP4 to PHP3.
+7 Evaluation
+We implemented a prototype4 of SDCL on top of the plain Lingeling solver [2]
+(no pre- or inprocessing), including proof-logging support in the PR proof for-
+mat [6]. We focus on solving large pigeon hole formulas eﬃciently and automat-
+ically, although we envision that the paradigm will be broadly applicable.
+Apart from the standard encoding of the pigeon hole formulas, we ran exper-
+iments on two alternative, more compact, encodings. Both encodings replace the
+at-most-one constraint≤1(x1,k;... ;xn+1,k), i.e., the H k
+i,j clauses in formula (1):
+The ﬁrst alternative replaces the direct encoding by a sequential counter encod-
+ing [15]. The second alternative, the minimal encoding, iteratively replaces three
+literals of the at-most-one constraint with a new literal and adds an at-most-one
+constraint between the three replaced literals and the new literal.
+We compared our method with two tools that can reason using extended
+resolution: Ebddres [16] and GlucosER [1]. Both tools can refute pigeon hole
+formulas eﬃciently compared to CDCL solvers. Ebddres solves a given formula
+using BDDs and optionally converts the BDD proof into an extended-resolution
+proof, linear in the number of BDD nodes, which in turn can be checked using
+the TraceCheck tool [5]. GlucosER is an extension of the Glucose solver
+that allows extended learning—a method that adds deﬁnitions based on conﬂict
+clauses. Proof logging is not supported by GlucosER, but it could in theory
+be added with reasonable eﬀort. 5
+Table 1 shows the results of our experiments. Each benchmark was executed
+on a compute node with two Intel(R) Xeon(R) E5-2620 v4 @ 2.10GHz CPUs
+and 128 GB of main memory, running Ubuntu 16.04.2 64-bit.
+4 The tools and ﬁles are available at http://fmv.jku.at/prune/
+5 Because we were unable to compile the sources, we could not add proof logging.
+Instead, we used a statically compiled binary.
+T able 1.The number of variables and clauses of pigeon hole formulas—standard (-std),
+sequential counter (-seq), and minimal (-min)—as well as the runtime (in seconds)
+and proof size (in BDD nodes or lemmas) for solving the formulas with Ebddres,
+GlucosER, and our SDCL variant of Lingeling. “TO” means a timeout after 9000
+seconds and “OF” means 32-bit index overﬂow ( ≥ 230 cache lines) for Ebddres.
+input Ebddres GlucosER Lingeling (PR)
+formula #var #cls time #node time #lemma time #lemma
+PHP10-std 110 561 1.00 3,182,495 22.71 329,470 0.07 329
+PHP11-std 132 738 3.47 9,493,302 146.61 1,514,845 0.11 439
+PHP12-std 156 949 10.64 27,351,195 307.29 2,660,358 0.16 571
+PHP13-std 182 1,197 30.81 76,513,832 982.84 6,969,736 0.22 727
+PHP20-std 420 4,221 OF —— TO —— 1.61 2,659
+PHP30-std 930 13,981 OF —— TO —— 13.45 8,989
+PHP40-std 1,640 32,841 OF —— TO —— 67.41 21,319
+PHP50-std 2,550 63,801 OF —— TO —— 241.14 41,649
+PHP10-seq 220 311 OF —— 1.62 25,712 0.07 327
+PHP11-seq 264 375 OF —— 6.94 77,747 0.10 437
+PHP12-seq 312 445 OF —— 19.40 174,084 0.14 569
+PHP13-seq 364 521 OF —— 172.76 1,061,318 0.18 725
+PHP20-seq 840 1,221 OF —— TO —— 1.05 2,657
+PHP30-seq 1,860 2,731 OF —— TO —— 6.55 8,987
+PHP40-seq 3,280 4,841 OF —— TO —— 27.10 21,317
+PHP50-seq 5,100 7,551 OF —— TO —— 86.30 41,647
+PHP10-min 180 281 28.60 81,490,141 0.64 15,777 0.06 329
+PHP11-min 220 342 143.92 399,014,970 1.82 34,561 0.10 439
+PHP12-min 264 409 OF —— 9.87 121,321 0.13 571
+PHP13-min 312 482 OF —— 57.66 483,789 0.18 727
+PHP20-min 760 1,161 OF —— TO —— 1.03 2,659
+PHP30-min 1,740 2,641 OF —— TO —— 6.30 8,989
+PHP40-min 3,120 4,721 OF —— TO —— 26.65 21,319
+PHP50-min 4,900 7,401 OF —— TO —— 85.00 41,649
+Our version of Lingeling is the only tool that can solve pigeon hole for-
+mulas with 20 or more pigeons. Over 99% of the learned clauses (“lemmas”)
+produced by Lingeling are PR clauses; the remaining ones are conﬂict clauses.
+The number of lemmas for PHPn is cubic in n, while the number of variables
+and the size of the formula are at least quadratic in n. All PR clauses that are
+found by Lingeling are also added to the proofs. The size of the automatically
+produced PR proofs is similar to that of our manual proofs [6]. For the proofs
+returned by Lingeling, we observed that between around 5 % and 40 % of the
+clauses are not required for proving unsatisﬁability. Moreover, our approach is
+robust: Performance varies only minimally across the diﬀerent encodings of the
+pigeon hole formulas.
+If we turn oﬀ our SDCL code, Lingeling requires exponential runtime on
+PHPn formulas. Runtimes are similar but in all cases larger than forGlucosER,
+e.g., 153 seconds for PHP13-min. We also want to highlight that the autarky
+decision heuristic is essential for proving the unsatisﬁability of the pigeon hole
+formulas—without this heuristic, Lingeling could not ﬁnd proofs within the
+given time limit.
+8 Conclusions
+We proposed a theoretical and a practical approach to searching for PR clauses.
+First, we showed that searching for a PR clause is an NP-complete problem.
+As a consequence, a SAT solver that performs the addition of PR clauses has to
+solve multiple NP-complete problems instead of only one. To make this approach
+feasible and eﬃcient, we turned the problem of ﬁnding a PR clause into a SAT
+encoding that is signiﬁcantly easier than the original problem. We called this en-
+coding the positive reduct and showed that satisfying the positive reduct yields a
+set-blocked clause, or, equivalently, a conditional autarky. We also demonstrated
+how this set-blocked clause can be shortened. Based on our theoretical results,
+we introduced SDCL—a new SAT-solving paradigm that generalizes CDCL so
+that it produces not only conﬂict clauses but also PR clauses. Finally, we imple-
+mented SDCL in the solver Lingeling and performed preliminary experiments
+with the pigeon hole formulas that are very promising.
+In future work, we want to focus on making the SDCL approach eﬀective on
+a wide spectrum of formulas. There are several challenges ahead. First and fore-
+most, a heuristic needs to be developed that facilitates ﬁnding PR clauses with
+few decisions. Our autarky decision heuristic appears to be a useful ﬁrst step.
+Second, experiments should be performed to ﬁnd out which PR clauses prune
+the search space most eﬀectively. In our evaluation, we selectedPR clauses based
+on decisions. An alternative is to use PR clauses based on conditional autarkies.
+It is also not yet clear when and how often an SDCL solver should search for
+PR clauses to achieve the best performance. Moreover, it could make sense to
+restrict the time spent on solving the positive reduct. Finally, we observed that
+although the computational costs for solving the positive reducts are low, the
+costs of generating the reducts are very high. Reducing the generation costs
+could thus improve the performance signiﬁcantly.
+References
+1. Audemard, G., Katsirelos, G., Simon, L.: A Restriction of Extended Resolution for
+Clause Learning SAT Solvers. In: Proc. of the 24th AAAI Conference on Artiﬁcial
+Intelligence (AAAI 2010). pp. 15–20. AAAI Press (2010)
+2. Biere, A.: Splatz, Lingeling, Plingeling, Treengeling, YalSAT Entering the SAT
+Competition 2016. In: Proc. of SAT Competition 2016 – Solver and Benchmark
+Descriptions. Dep. of Computer Science Series of Publications B, vol. B-2016-1,
+pp. 44–45. University of Helsinki (2016)
+3. Cook, S.A.: A short proof of the pigeon hole principle using extended resolution.
+SIGACT News 8(4), 28–32 (Oct 1976)
+4. Haken, A.: The intractability of resolution. Theoretical Computer Science 39, 297–
+308 (1985)
+5. Heule, M.J.H., Biere, A.: Proofs for satisﬁability problems. In: All about Proofs,
+Proofs for All (APPA), Math. Logic and Foundations, vol. 55. College Pub. (2015)
+6. Heule, M.J.H., Kiesl, B., Biere, A.: Short proofs without new variables. In: Proc. of
+the 26th Int. Conference on Automated Deduction (CADE-26). LNCS, vol. 10395,
+pp. 130–147. Springer (2017)
+7. J¨ arvisalo, M., Heule, M.J.H., Biere, A.: Inprocessing rules. In: Proc. of the 6th Int.
+Joint Conference on Automated Reasoning (IJCAR 2012). LNCS, vol. 7364, pp.
+355–370. Springer, Heidelberg (2012)
+8. Kiesl, B., Seidl, M., Tompits, H., Biere, A.: Super-blocked clauses. In: Proc. of
+the 8th Int. Joint Conference on Automated Reasoning (IJCAR 2016). LNCS, vol.
+9706, pp. 45–61. Springer, Cham (2016)
+9. Kleine B¨ uning, H., Kullmann, O.: Minimal unsatisﬁability and autarkies. In: Hand-
+book of Satisﬁability, pp. 339–401. IOS Press (2009)
+10. Kullmann, O.: On a generalization of extended resolution. Discrete Applied Math-
+ematics 96-97, 149–176 (1999)
+11. Marques Silva, J.P., Sakallah, K.A.: GRASP: A search algorithm for propositional
+satisﬁability. IEEE Trans. Computers 48(5), 506–521 (1999)
+12. Monien, B., Speckenmeyer, E.: Solving satisﬁability in less than 2 n steps. Discrete
+Applied Mathematics 10(3), 287–295 (1985)
+13. Moskewicz, M.W., Madigan, C.F., Zhao, Y., Zhang, L., Malik, S.: Chaﬀ: Engi-
+neering an eﬃcient SAT solver. In: Proceedings of the 38th Design Automation
+Conference (DAC 2001). pp. 530–535. ACM (2001)
+14. Nordstr¨ om, J.: On the interplay between proof complexity and SAT solving.
+SIGLOG News 2(3), 19–44 (2015)
+15. Sinz, C.: Towards an optimal CNF encoding of boolean cardinality constraints.
+In: Proc. of the 11th Int. Conference on Principles and Practice of Constraint
+Programming (CP 2005). LNCS, vol. 3709, pp. 827–831. Springer (2005)
+16. Sinz, C., Biere, A.: Extended Resolution Proofs for Conjoining BDDs. In: Proc. of
+the 1st Int. Computer Science Symposium in Russia (CSR 2006). LNCS, vol. 3967,
+pp. 600–611. Springer (2006)
+17. S¨ orensson, N., Biere, A.: Minimizing learned clauses. In: Proc. of the 12th Int.
+Conference on Theory and Applications of Satisﬁability Testing (SAT 2009). LNCS,
+vol. 5584, pp. 237–243. Springer (2009)
+18. Tseitin, G.S.: On the complexity of derivation in propositional calculus. In: Au-
+tomation of Reasoning: 2: Classical Papers on Computational Logic 1967–1970.
+pp. 466–483. Springer, Heidelberg (1983)
+19. Urquhart, A.: The complexity of propositional proofs. In: Current Trends in The-
+oretical Computer Science, pp. 332–342. World Scientiﬁc (2001)

@@ -1,0 +1,66 @@
+c SaDiCaL SAT Solver
+c Copyright (C) 2018 by Armin Biere JKU
+c
+c Version 00n 47bff7ef874226b4a00ebd20fedf88eb7c4a3a39
+c Compiler gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+c Options gcc -Wall -O3 -DNDEBUG -DNLOG
+c proof path '/mnt/d/PvsNP/phase4/results/proofs_sadical/F4/tseitin_n20_s1.sadical.dpr'
+c
+c non default options:
+c
+c --binary=false
+c --force=true
+c --witness=false
+c
+c parsing '/mnt/d/PvsNP/phase4/instances/f4/tseitin_n20_s1.cnf'
+c found 'p cnf 30 80' header
+c parsed DIMACS in 0.00 seconds
+c 
+c
+c   time      reduced redundant irredundant
+c       space  restarts  glue    variables
+c           level conflicts  size  remaining
+c
+c s 0.01 0.0 2.2 0 3 25 0 3.2 3.2 76 29 97%
+c s 0.01 0.0 2.1 0 5 37 0 3.1 3.1 70 27 90%
+c s 0.02 0.0 2.7 0 8 50 0 3.7 3.7 66 26 87%
+c s 0.02 0.0 2.5 0 10 82 1 3.5 3.5 62 25 83%
+c s 0.03 0.0 2.5 0 13 123 2 3.5 3.5 58 24 80%
+c s 0.03 0.0 2.3 0 20 263 0 3.3 3.3 46 19 63%
+c s 0.03 0.0 2.1 0 23 274 0 3.1 3.1 40 17 57%
+c s 0.04 0.0 2.0 0 24 302 0 3.0 3.0 30 13 43%
+c s 0.04 0.0 2.0 0 25 322 0 3.0 3.0 22 10 33%
+c s 0.04 0.0 1.9 0 25 326 0 2.9 2.9 12 6 20%
+c 0 0.04 0.0 1.9 0 25 328 0 2.9 2.9 12 3 10%
+c
+s UNSATISFIABLE
+c
+c simplifications:            10          33  conflicts/simplification  100%
+c reductions:                  0           0  conflicts/reduction       100%
+c restarts:                   25          13  conflicts/restart         100%
+c conflicts:                 328        8867  conflicts/sec              94%
+c decisions:                 162        4379  decisions/sec              47%
+c propagations:             7490         0.2  millions/sec               83%
+c
+c pure:                        0           0% of look-aheads
+c look-ahead:                162         100% of outer decisions         47%
+c pruned:                     63          19% of outer conflicts         18%
+c generated reducts:         189          33% satisfiable
+c average size:               21          39% of all clauses
+c pruning failed:            126          67% per reduct
+c filter checks:            1483          35% of outer satisfied clauses
+c average filtered:          1.4           6% per reduct
+c assumed literals:         3005         2.0  per filter check
+c
+c collected clauses:        0.00 MB       92% of allocated clauses        6%
+c allocated clauses:        0.00 MB       11% of allocated memory         6%
+c maximum heap:             0.02 MB        2% of resident set size       57%
+c
+c looking:                  0.00 sec      10% of process time
+c filtering:                0.01 sec      21% of process time
+c pruning:                  0.02 sec      61% of process time
+c simplifying:              0.00 sec       2% of process time
+c
+c resident set size:        0.93 MB
+c total process time:       0.04 sec
+RC=0

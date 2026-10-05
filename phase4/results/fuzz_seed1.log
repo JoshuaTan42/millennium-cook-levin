@@ -1,0 +1,10 @@
+case 0 ok (rand n=13 m=58)
+case 20 ok (tseitin n=4 parity=0)
+case 40 ok (rand n=18 m=76)
+case 60 ok (rand n=58 m=247)
+case 80 ok (tseitin n=8 parity=1)
+case 100 ok (rand n=47 m=211)
+CASE 101 (cliquecol 8 4 4): PROBLEMS ['sdcl: status UNKNOWN (rc=0) after 120.2s', 'unfiltered: status UNKNOWN (rc=0) after 120.2s']
+case 120 ok (rand n=20 m=90)
+case 140 ok (rand3 n=42)
+DONE seed=1 cases=150 bad=1 sat=32 unsat=118

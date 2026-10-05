@@ -1,0 +1,24 @@
+jobs total 1881, done 343, todo 1538
+[1/1538] F8 mchess_10.cnf sdcl -> UNSATISFIABLE cost=25851 wall=611.577
+[2/1538] F4 tseitin_n60_s0.cnf plain -> UNSATISFIABLE cost=64675 wall=4.643
+[3/1538] F4 tseitin_n60_s1.cnf plain -> UNSATISFIABLE cost=5194 wall=0.45
+[4/1538] F4 tseitin_n60_s2.cnf plain -> UNSATISFIABLE cost=23966 wall=2.433
+[5/1538] F4 tseitin_n60_s3.cnf plain -> UNSATISFIABLE cost=55989 wall=6.193
+[6/1538] F4 tseitin_n60_s4.cnf plain -> UNSATISFIABLE cost=491260 wall=41.417
+[7/1538] F4 tseitin_n60_s5.cnf plain -> UNSATISFIABLE cost=49646 wall=3.779
+[8/1538] F4 tseitin_n60_s4.cnf sdcl -> TIMEOUT cost=54430 wall=3600.211
+[9/1538] F4 tseitin_n60_s2.cnf sdcl -> TIMEOUT cost=62096 wall=3600.252
+[10/1538] F4 tseitin_n60_s5.cnf sdcl -> TIMEOUT cost=62669 wall=3600.256
+[11/1538] F4 tseitin_n60_s6.cnf sdcl -> TIMEOUT cost=56006 wall=3600.263
+[12/1538] F4 tseitin_n60_s9.cnf sdcl -> TIMEOUT cost=66955 wall=3600.229
+[13/1538] F4 tseitin_n60_s1.cnf sdcl -> TIMEOUT cost=77512 wall=3600.665
+[14/1538] F4 tseitin_n60_s3.cnf sdcl -> TIMEOUT cost=55578 wall=3600.847
+[15/1538] F4 tseitin_n60_s0.cnf sdcl -> TIMEOUT cost=65026 wall=3600.958
+[16/1538] F5 cliquecol_n12_k4_c3.cnf sdcl -> TIMEOUT cost=61225 wall=3600.951
+[17/1538] F4 tseitin_n60_s7.cnf sdcl -> TIMEOUT cost=48135 wall=3601.509
+[18/1538] F4 tseitin_n60_s8.cnf sdcl -> TIMEOUT cost=67258 wall=3603.309
+[19/1538] F4 tseitin_n60_s6.cnf plain -> UNSATISFIABLE cost=33729 wall=2.418
+[20/1538] F5 cliquecol_n12_k4_c3.cnf plain -> UNSATISFIABLE cost=124801 wall=11.845
+[21/1538] F4 tseitin_n60_s7.cnf plain -> UNSATISFIABLE cost=157869 wall=16.929
+[22/1538] F4 tseitin_n60_s9.cnf plain -> UNSATISFIABLE cost=163944 wall=16.124
+[23/1538] F8 mchess_10.cnf plain -> UNSATISFIABLE cost=6146 wall=0.776

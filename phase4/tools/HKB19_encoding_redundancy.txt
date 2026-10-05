@@ -1,0 +1,744 @@
+Encoding Redundancy for
+Satisfaction-Driven Clause Learning ⋆
+Marijn J.H. Heule 1, Benjamin Kiesl 2,3, and Armin Biere 4
+1 Department of Computer Science, The University of Texas at Austin, USA
+2 Institute of Logic and Computation, TU Wien, Vienna, Austria
+3 CISPA Helmholtz Center for Information Security, Saarbr¨ ucken, Germany
+4 Institute for Formal Models and Veriﬁcation, JKU Linz, Austria
+Abstract. Satisfaction-Driven Clause Learning (SDCL) is a recent SAT
+solving paradigm that aggressively trims the search space of possible
+truth assignments. To determine if the SAT solver is currently exploring
+a dispensable part of the search space, SDCL uses the so-called positive
+reduct of a formula: The positive reduct is an easily solvable propositional
+formula that is satisﬁable if the current assignment of the solver can be
+safely pruned from the search space. In this paper, we present two novel
+variants of the positive reduct that allow for even more aggressive prun-
+ing. Using one of these variants allows SDCL to solve harder problems,
+in particular the well-known Tseitin formulas and mutilated chessboard
+problems. For the ﬁrst time, we are able to generate and automatically
+check clausal proofs for large instances of these problems.
+Introduction
+Conﬂict-driven clause learning (CDCL) [26, 28] is the most successful paradigm
+for solving satisﬁability (SAT) problems and therefore CDCL solvers are per-
+vasively used as reasoning engines to construct and verify systems. However,
+CDCL solvers still struggle to handle some important applications within rea-
+sonable time. These applications include the veriﬁcation of arithmetic circuits,
+challenges from cryptanalysis, and hard combinatorial problems. There appears
+to be a theoretical barrier to dealing with some of these applications eﬃciently.
+At its core, CDCL is based on the resolution proof system, which means
+that the same limitations that apply to resolution also apply to CDCL. Most
+importantly, there exist only exponentially large resolution proofs for several
+seemingly easy problems [15, 33], implying that CDCL solvers require exponen-
+tial time to solve them. A recent approach to breaking this exponential barrier is
+the satisfaction-driven clause learning (SDCL) paradigm [20], which can auto-
+matically ﬁnd short proofs of pigeon-hole formulas in the PR proof system [19].
+SDCL extends CDCL by pruning the search space of truth assignments more
+aggressively. While a pure CDCL solver learns only clauses that can be eﬃciently
+⋆ Supported by NSF under grant CCF-1813993, by AFRL Award FA8750-15-2-0096,
+and by the Austrian Science Fund (FWF) under projects W1255-N23 and S11409-
+N23 (RiSE).
+1
+derived via resolution, an SDCL solver also learns stronger clauses. The initial
+approach to learning these clauses is based on the so-calledpositive reduct: Given
+a formula and a partial truth assignment, the positive reduct is a simple propo-
+sitional formula encoding the question of whether the assignment can be pruned
+safely from the search space. In cases where the positive reduct is satisﬁable, the
+solver performs the pruning by learning a clause that blocks the assignment.
+Although the original SDCL paradigm can solve the hard pigeon-hole for-
+mulas, we observe that it is not sophisticated enough to deal with other hard
+formulas that require exponential-size resolution proofs, such as Tseitin formulas
+over expander graphs [32, 33] or mutilated chessboard problems [1, 13, 27]. In this
+paper, we deal with this issue and present techniques that improve the SDCL
+paradigm. In particular, we introduce new variants of the above-mentioned pos-
+itive reduct that allow SDCL to prune the search space even more aggressively.
+In a ﬁrst step, we explicitly formalize the notion of a pruning predicate:
+For a formulaF and a (partial) assignment α, a pruning predicate is a proposi-
+tional formula that is satisﬁable if α can be pruned in a satisﬁability-preserving
+way. Ideally, a pruning predicate is easily solvable while still pruning the search
+space as much as possible. We then present two novel pruning predicates of
+which one, the ﬁltered positive reduct, is easier to solve and arguably more useful
+in practice while the other, the PR reduct, allows for stronger pruning.
+In many applications, it is not enough that a solver just provides a simple
+yes/no answer. Especially when dealing with mathematical problems or safety-
+critical systems, solvers are required to provide automatically checkable proofs
+that certify the correctness of their answers. The current state of the art in proof
+generation and proof checking is to focus on clausal proofs, which are speciﬁc
+sequences of clause additions and clause removals. Besides the requirement that
+SAT solvers in the main track of the SAT competition must produce such clausal
+proofs, there also exist corresponding proof checkers whose correctness has been
+veriﬁed by theorem provers, as ﬁrst proposed in a seminal TACAS’17 paper [12].
+We implemented a new SDCL solver, called SaDiCaL, that can solve the
+pigeon-hole formulas, the Tseitin formulas, and the mutilated chessboard prob-
+lems due to using the ﬁltered positive reduct. Our solver also produces PR
+proofs [19]. We certify their correctness by translating them viaDRAT proofs [17]
+to LRAT proofs, which are then validated by a formally veriﬁed proof checker [18].
+Existing approaches to solving the Tseitin formulas are based on symmetry
+breaking [14] or algebraic reasoning, in particular Gaussian elimination [9, 31,
+3, 21]. However, the respective tools do not output machine-checkable proofs.
+Moreover, approaches based on symmetry breaking and Gaussian elimination
+depend strongly on the syntactic structure of formulas to identify symmetries and
+cardinality constraints, respectively. They are therefore vulnerable to syntactic
+changes that do not aﬀect the semantics of a formula. In contrast, SDCL reasons
+on the semantic level, making it less prone to syntactic changes.
+The main contributions of this paper are as follows: (1) We explicitly for-
+mulate the notion of a pruning predicate, which was used only implicitly in the
+original formulation of SDCL. (2) We present two novel pruning predicates that
+2
+generalize the positive reduct. (3) We implemented a new SDCL solver, called
+SaDiCaL, that uses one of our new pruning predicates. (4) We show by an
+experimental evaluation that this new pruning predicate enables SaDiCaL to
+produce short proofs (without new variables) of Tseitin formulas and of muti-
+lated chessboard problems.
+Preliminaries
+Propositional logic. We consider propositional formulas in conjunctive normal
+form (CNF), which are deﬁned as follows. A literal is deﬁned to be either a
+variablex (a positive literal) or the negationx of a variablex (a negative literal).
+The complement l of a literal l is deﬁned as l = x if l = x and l = x if l = x.
+Accordingly, for a set L of literals, we deﬁne L ={l| l∈ L}. A clause is a
+disjunction of literals. A formula is a conjunction of clauses. We view clauses
+as sets of literals and formulas as sets of clauses. For a set L of literals and a
+formula F , we deﬁne FL ={C∈ F | C∩L⁄=∅}. By var(F ) we denote the
+variables of a literal, clause, or formula F . For convenience, we treat var(F ) as
+a variable if F is a literal, and as a set of variables otherwise.
+Satisﬁability. An assignment is a function from a set of variables to the truth
+values 1 (true) and 0 (false). An assignment istotal w.r.t. a formulaF if it assigns
+a truth value to all variables var(F ) occurring in F ; otherwise it is partial. A
+literal l is satisﬁed by an assignment α if l is positive and α(var(l)) = 1 or
+if it is negative and α(var(l)) = 0. A literal is falsiﬁed by an assignment α
+if its complement is satisﬁed by α. A clause is satisﬁed by an assignment α if
+it contains a literal that is satisﬁed by α. Finally, a formula is satisﬁed by an
+assignmentα if all its clauses are satisﬁed by α. A formula is satisﬁable if there
+exists an assignment that satisﬁes it. We often denote assignments by sequences
+of the literals they satisfy. For instance, xy denotes the assignment that assigns
+1 to x and 0 to y. For an assignment α, var(α) denotes the variables assigned
+byα. For a set L of non-contradictory literals, we denote by αL the assignment
+obtained from α by making all literals in L true and assigning the same value
+as α to other variables not in var(L).
+Formula simpliﬁcation. We refer to the empty clause by⊥. Given an assignment
+α and a clause C, we deﬁne C↾α =⊤ if α satisﬁes C; otherwise, C↾α denotes
+the result of removing from C all the literals falsiﬁed by α. For a formula F ,
+we deﬁne F ↾α ={C↾α| C∈F and C↾α⁄=⊤}. We say that an assignment α
+touches a clauseC if var(α)∩var(C)⁄=∅. A unit clause is a clause with only one
+literal. The result of applying the unit clause rule to a formula F is the formula
+F ↾l where (l) is a unit clause in F . The iterated application of the unit clause
+rule to a formula F , until no unit clauses are left, is called unit propagation.
+If unit propagation yields the empty clause ⊥, we say that unit propagation
+applied to F derived a conﬂict.
+3
+SDCL ( formulaF )
+1 α := ∅
+2 forever do
+3 α := UnitPropagate(F,α )
+4 if α falsiﬁes a clause in F then
+5 C := AnalyzeConﬂict()
+6 F :=F ∧C
+7 if C is the empty clause ⊥ then return UNSAT
+8 α := BackJump(C,α )
+9 else if the pruning predicate Pα(F ) is satisﬁable then
+10 C := AnalyzeWitness()
+11 F :=F ∧C
+12 α := BackJump(C,α )
+13 else
+14 if all variables are assigned then return SAT
+15 l := Decide()
+16 α :=α ∪ {l}
+Fig. 1. SDCL algorithm [20]. The lines 9 to 12 extend CDCL [26].
+Formula relations. Two formulas are logically equivalent if they are satisﬁed by
+the same total assignments. Two formulas are equisatisﬁable if they are either
+both satisﬁable or both unsatisﬁable. Furthermore, byF⊣1 G we denote that for
+every clause (l1∨···∨ ln)∈G, unit propagation applied to F∧ (l1)∧···∧ (ln)
+derives a conﬂict. If F⊣1 G, we say that F implies G via unit propagation. For
+example, (a∨c)∧(b∨c) implies (a∨b) via unit propagation since unit propagation
+derives a conﬂict on (a∨c)∧ (b∨c)∧ (a)∧ (b).
+Conﬂict-Driven Clause Learning (CDCL). To determine whether a formula is
+satisﬁable a CDCL solver iteratively performs the following operations (obtained
+from the pseudo code in Fig. 1 by removing the lines 9 to 12): First, the solver
+performs unit propagation until either it derives a conﬂict or the formula con-
+tains no more unit clauses. If it derives a conﬂict, it analyzes the conﬂict to
+learn a clause that prevents it from repeating similar (bad) decisions in the
+future (“clause learning”). If this learned clause is the (unsatisﬁable) empty
+clause⊥, the solver can conclude that the formula is unsatisﬁable. In case it
+is not the empty clause, the solver revokes some of its variable assignments
+(“backjumping”) and then repeats the whole procedure again by performing
+unit propagation. If, however, the solver does not derive a conﬂict, there are two
+options: Either all variables are assigned, in which case the solver can conclude
+that the formula is satisﬁable, or there are still unassigned variables, in which
+case the solver ﬁrst assigns a truth value to an unassigned variable (the actual
+variable and the truth value are chosen based on a so-called decision heuristic)
+and then continues by again performing unit propagation. For more details see
+the chapter on CDCL [25] in the Handbook of Satisﬁability [7].
+4
+x
+y
+z z
+y
+z z
+x
+y
+z z
+y
+z z
+Fig. 2. By learning the clause x ∨y, a solver prunes all branches where x is true and y
+is false from the search space. SDCL can prune satisfying branches too (unlike CDCL).
+Satisfaction-Driven Clause Learning (SDCL). The SDCL algorithm [20], shown
+in Fig. 1, is a generalization of CDCL that is obtained by adding lines 9 to
+12 to the CDCL algorithm. In CDCL, if unit propagation does not derive a
+conﬂict, the solver picks a variable and assigns a truth value to it. In contrast,
+an SDCL solver does not necessarily assign a new variable in this situation.
+Instead, it ﬁrst checks if the current assignment can be pruned from the search
+space without aﬀecting satisﬁability. If so, the solver prunes the assignment by
+learning a new clause (Fig. 2 illustrates how clause learning can prune the search
+space). This clause is returned by the AnalyzeWitness() function and usually
+consists of the decision literals of the current assignment (although other ways of
+computing the clause are possible, c.f. [20]). If the assignment cannot be pruned,
+the solver proceeds by assigning a new variable—just as in CDCL. To check if the
+current assignment can be pruned, the solver produces a propositional formula
+that should be easier to solve than the original formula and that can only be
+satisﬁable if the assignment can be pruned. Thus, an SDCL solver solves several
+easier formulas in order to solve a hard formula. In this paper, we call these easier
+formulas pruning predicates. We ﬁrst formalize the pruning predicate used in the
+original SDCL paper before we introduce more powerful pruning predicates.
+Pruning Predicates and Redundant Clauses
+As already explained informally, a pruning predicate is a propositional formula
+whose satisﬁability guarantees that an assignment can be pruned from the search
+space. The actual pruning is then performed by adding the clause that blocks
+the assignment (or a subclause of this clause, as explained in detail later):
+Deﬁnition 1. Given an assignment α = a1...a k, the clause (a1∨···∨ ak) is
+the clause that blocks α.
+The clause that blocks α is thus the unique maximal clause falsiﬁed by α. Based
+on this notion, we deﬁne pruning predicates as follows:
+Deﬁnition 2. LetF be a formula and C the clause that blocks a given (partial)
+assignment α. A pruning predicate for F and α is a formula Pα(F ) such that
+the following holds: if Pα(F ) is satisﬁable, then F and F∧C are equisatisﬁable.
+Thus, if a pruning predicate for a formula F and an assignment α is satisﬁable,
+we can add the clause that blocksα toF without aﬀecting satisﬁability. We thus
+5
+PR clauses
+PR reduct
+SPR clauses
+ﬁltered positive reduct
+SET clauses
+positive reduct
+Fig. 3. Relationship between types of redundant clauses and the corresponding pruning
+predicates. An arrow from X to Y means that X is a superset of Y .
+say that this clause is redundant with respect to F . In the paper that introduces
+SDCL [20], the so-called positive reduct (see Deﬁnition 3 below) is used as a
+pruning predicate. The positive reduct is obtained from satisﬁed clauses of the
+original formula by removing unassigned literals.
+In the following, given a clauseC and an assignmentα, we write touchedα(C)
+to denote the subclause of C that contains exactly the literals assigned by α.
+Analogously, we denote by untouchedα(C) the subclause of C that contains the
+literals not assigned by α [20].
+Deﬁnition 3. Let F be a formula and α an assignment. Then, the positive
+reduct pα(F ) of F and α is the formula G∧C whereC is the clause that blocks
+α and G ={touchedα(D)|D∈F and D↾α =⊤}.
+Example 1. Let F = (x∨y∨z)∧ (w∨y)∧ (w∨z) and α = xy z. Then, the
+positive reduct pα(F ) of F w.r.t. α is the formula (x∨y∨z)∧ (z)∧ (x∨y∨z).
+The positive reduct is satisﬁable if and only if the clause blocked by α is a
+set-blocked clause [23], short SET clause, with respect to F . Since the addition
+of set-blocked clauses to a formula preserves satisﬁability, it follows that the
+positive reduct is a pruning predicate. Moreover, since the problem of deciding
+whether a given clause is a set-blocked clause is NP-complete, it is natural to
+use a SAT solver for ﬁnding set-blocked clauses.
+Although set-blocked clauses can be found eﬃciently with the positive reduct,
+there are more general kinds of clauses whose addition can prune the search space
+more aggressively, namely propagation-redundant clauses (PR clauses) and their
+subclass of set-propagation-redundant clauses (SPR clauses) [19].
+In the following, we thus introduce two diﬀerent kinds of pruning predicates.
+Given a formula F and an assignment α, the ﬁrst pruning predicate, called the
+ﬁltered positive reduct, is satisﬁable if and only if the clause that blocks α is an
+SPR clause in F . The second pruning predicate, called PR reduct, is satisﬁable
+if and only if the clause that blocks α is a PR clause; it allows us to prune more
+assignments than the ﬁltered positive reduct but it is also harder to solve. The
+relationship between the redundant clause types and pruning predicates is shown
+in Fig. 3. According to [19], the deﬁnition of PR clauses is as follows:
+Deﬁnition 4. Let F be a formula, C a clause, and α the assignment blocked
+by C. Then, C is propagation redundant ( PR) with respect to F if there exists
+an assignment ω such that F ↾α⊣1 F ↾ω and ω satisﬁes C.
+6
+The clauseC can be seen as a constraint that prunes all assignments that extend
+α from the search space. Since F ↾α implies F ↾ω via unit propagation, every
+assignment that satisﬁes F ↾α also satisﬁes F ↾ω, and so we say that F is at least
+as satisﬁable under ω as it is under α. Moreover, since ω satisﬁes C, it must
+disagree with α. Consider the following example [19]:
+Example 2. Let F = (x∨y)∧ (x∨y)∧ (x∨z) be a formula, C = (x) a clause,
+and ω =xz an assignment. Then, α =x is the assignment blocked by C. Now,
+consider F ↾α = (y) and F ↾ω = (y). Since unit propagation clearly derives a
+conﬂict onF ↾α∧(y) = (y)∧(y), we haveF ↾α⊣1 F ↾ω and thusC is propagation
+redundant with respect to F .
+The key property of propagation-redundant clauses is that their addition to a
+formula preserves satisﬁability [19]. A strict subclass of propagation-redundant
+clauses are set-propagation-redundant clauses, which have the additional require-
+ment that ω must assign the same variables as α. For the following deﬁnition,
+recall (from the preliminaries) that αL denotes the assignment obtained from α
+by assigning 1 to the literals in L [19]:
+Deﬁnition 5. Let F be a formula, C a clause, and α the assignment blocked
+by C. Then, C is set-propagation redundant ( SPR) with respect to F if it con-
+tains a non-empty set L of literals such that F ↾α⊣1 F ↾αL.
+If F ↾α⊣1 F ↾αL, we say C is SPR by L with respect to F .
+Example 3. LetF = (x∨y)∧ (x∨y∨z)∧ (x∨z)∧ (x∨u)∧ (u∨x),C =x∨u,
+and L ={x,u}. Then, α = xu is the assignment blocked by C, and αL = xu .
+Now, consider F ↾α = (y)∧ (y∨z) and F ↾αL = (z). Clearly, F ↾α⊣1 F ↾αL and
+so C is set-propagation redundant by L with respect to F .
+Most known types of redundant clauses are SPR clauses [19]. This includes
+blocked clauses [24], set-blocked clauses [23], resolution asymmetric tautologies
+(RATs) [22], and many more. By introducing pruning predicates that allow us
+to add SPR clauses and even PR clauses to a formula, we thus allow for more
+eﬀective pruning than with the positive reduct originally used in SDCL. We start
+by presenting our new ﬁltered positive reduct.
+The Filtered Positive Reduct
+The original positive reduct of a formula F and an assignment α is obtained by
+ﬁrst taking all clauses of F that are satisﬁed byα and then removing from these
+clauses the literals that are not touched (assigned) byα. The resulting clauses are
+then conjoined with the clause C that blocks α. We obtain the ﬁltered positive
+reduct by not taking all satisﬁed clauses of F but only those for which the
+untouched part is not implied by F ↾α via unit propagation:
+Deﬁnition 6. Let F be a formula and α an assignment. Then, the ﬁltered
+positive reduct fα(F ) of F and α is the formula G∧C where C is the clause
+that blocks α and G ={touchedα(D)|D∈F and F ↾α⁄⊣1 untouchedα(D)}.
+7
+Clearly the ﬁltered positive reduct is a subset of the positive reduct because
+F ↾α ⁄⊣1 untouchedα(D) implies D↾α = ⊤. To see this, suppose D↾α ⁄= ⊤.
+Then,D↾α is contained in F ↾α and since untouchedα(D) =D↾α, it follows that
+F ↾α⊣1 untouchedα(D). Therefore, the ﬁltered positive reduct is obtained from
+the positive reduct by removing (“ﬁltering”) every clause D′ = touchedα(D)
+such that F ↾α⊣1 untouchedα(D).
+The following example illustrates how the ﬁltered positive reduct allows us to
+prune assignments that cannot be pruned when using only the positive reduct:
+Example 4. Let F = (x∨y)∧ (x∨y) and consider the assignment α =x. The
+positive reduct pα(F ) = (x)∧ (x) is unsatisﬁable and so it does not allow us
+to prune α. In contrast, the ﬁltered positive reduct fα(F ) = (x), obtained by
+ﬁltering out the clause (x), is satisﬁed by the assignmentx. The clause (x) is not
+contained in the ﬁltered reduct because untouchedα(x∨y) = (y) andF ↾α = (y),
+which implies F ↾α⊣1 untouchedα(x∨y). Note that the clause ( x) is contained
+both in the positive reduct and in the ﬁltered positive reduct since it blocks α.
+The ﬁltered positive reduct has a useful property: If a non-empty assignment
+α falsiﬁes a formula F , then the ﬁltered positive reduct fα(F ) is satisﬁable. To
+see this, observe that ⊥∈ F ↾α and so F ↾α⊣1 untouchedα(D) for every clause
+D∈F because unit propagation derives a conﬂict on F ↾α alone (note that this
+also holds if untouchedα(D) is the empty clause ⊥). Therefore, fα(F ) contains
+only the clause that blocks α, which is clearly satisﬁable. The ordinary positive
+reduct does not have this property.
+Note that the ﬁltered positive reduct contains only variables of var(α). Since
+it also contains the clause that blocksα, any satisfying assignment of the ﬁltered
+positive reduct must disagree withα on at least one literal. Hence, every satisfy-
+ing assignment of the ﬁltered positive reduct is of the formαL whereL is a set of
+literals that are contained in the clause that blocks α. With the ﬁltered positive
+reduct, we can identify exactly the clauses that are set-propagation redundant
+with respect to a formula:
+Theorem 1. Let F be a formula, α an assignment, and C the clause that
+blocks α. Then, C is SPR by an L⊆ C with respect to F if and only if the
+assignment αL satisﬁes the ﬁltered positive reduct fα(F ).
+Proof. For the “only if” direction, supposeC is SPR by anL⊆C inF , meaning
+that F ↾α⊣1 F ↾αL. We show that αL satisﬁes all clauses of fα(F ). Let therefore
+D′∈ fα(F ). By deﬁnition, D′ is either the clause that blocks α or it is of the
+form touchedα(D) for some clause D∈ F such that F ↾α⁄⊣1 untouchedα(D). In
+the former case, D′ is clearly satisﬁed by αL since αL must disagree with α.
+In the latter case, since F ↾α⊣1 F ↾αL, it follows that either F ↾α⊣1 D↾αL or
+αL satisﬁes D. Now, if D↾αL ⁄=⊤, it cannot be the case that F ↾α⊣1 D↾αL
+since var(αL) = var(α) and thus D↾αL = untouchedα(D), which would imply
+F ↾α⊣1 untouchedα(D). Therefore, αL must satisfy D. But then αL must satisfy
+D′ = touchedα(D), again since var(αL) = var(α).
+8
+For the “if” direction, assume that αL satisﬁes the ﬁltered positive reduct
+fα(F ). We show that F ↾α⊣1 F ↾αL. Let D↾αL ∈ F ↾αL. Since D↾αL is con-
+tained in F ↾αL, we know that αL does not satisfy D and so it does not satisfy
+touchedα(D). Hence, touchedα(D) cannot be contained in fα(F ), implying that
+F ↾α⊣1 untouchedα(D). But, D↾αL = untouchedα(D) since var(αL) = var(α)
+and thus it follows that F ↾α⊣1 D↾αL.
+When the (ordinary) positive reduct is used for SDCL solving, the following
+property holds [20]: Assume the solver has a current assignment α = αd∪αu
+whereαd consists of all the assignments that were made by the decision heuristic
+andαu consists of all assignments that were derived via unit propagation. If the
+solver then ﬁnds that the positive reduct of its formula and the assignment α
+is satisﬁable, it can learn the clause that blocks αd instead of the longer clause
+that blocks α, thus pruning the search space more eﬀectively. This is allowed
+because the clause that blocks αd is guaranteed to be propagation redundant.
+The same holds for the ﬁltered positive reduct and the argument is analogous
+to the earlier one [20]: Assume the ﬁltered positive reduct of F andα =αd∪αu
+is satisﬁable. Then, the clause that blocks α is set-propagation redundant with
+respect toF and thus there exists an assignmentαL such thatF ↾α⊣1 F ↾αL. But
+then, since unit propagation derives all the assignments ofαu fromF ↾αd, it must
+also hold that F ↾αd⊣1 F ↾αL, and so the clause that blocks αd is propagation
+redundant with respect to F and (witness) assignment ω =αL.
+Finally, observe that the ﬁltered positive reducts fαd(F ) and fα(F ) are not
+always equisatisﬁable. To see this, consider the formula F = (x∨y)∧ (x∨y)
+and the assignments α = xy and αd = x. Clearly, the unit clause y is derived
+from F ↾αd. Now, observe that fα(F ) is satisﬁable while fαd(F ) is unsatisﬁable.
+It thus makes sense to ﬁrst compute the ﬁltered positive reduct with respect to
+α and then—in case it is satisﬁable—remove the propagated literals to obtain a
+shorter clause.
+The PR Reduct
+We showed in the previous section that the ﬁltered positive reduct charac-
+terizes precisely the set-propagation-redundant clauses. Since set-propagation-
+redundant clauses are a subset of propagation-redundant clauses [19], it is natural
+to search for an encoding that characterizes the propagation-redundant clauses,
+which could possibly lead to an even more aggressive pruning of the search space.
+As we will see in the following, such an encoding must necessarily be large be-
+cause it has to reason over all possible clauses of a formula. We thus believe that
+it is hardly useful for practical SDCL solving.
+The positive reduct and the ﬁltered positive reduct yield small formulas that
+can be easily solved in practice. The downside, however, is that nothing can be
+learned from their unsatisﬁability. This is diﬀerent for a pruning predicate that
+encodes propagation redundancy:
+9
+Theorem 2. If a clause l1∨···∨ lk is not propagation redundant with respect
+to a formula F , then F implies l1∧···∧ lk.
+Proof. Assume l1∨···∨ lk is not propagation redundant with respect to F , or
+equivalently that all assignments ω with F ↾l1... lk⊣1 F ↾ω agree with l1... lk.
+Then, no assignment that disagrees withl1... lk can satisfyF . As a consequence,
+F implies l1∧···∧ lk.
+By solving a pruning predicate for propagation-redundant clauses, we thus not
+only detect if the current assignment can be pruned (in case the predicate is
+satisﬁable), but also if the formula can only possibly be satisﬁed by extensions
+of the current assignment (in case the predicate is unsatisﬁable). This is in
+contrast to the positive reduct and the ﬁltered positive reduct, which often only
+need to consider a small subpart of the original formula. We thus believe that
+such an encoding is not useful in practice. In the following, we present a possible
+encoding which—due to the above reasons—we did not evaluate in practice.
+Nevertheless, performing such an evaluation is still part of our future work.
+In the deﬁnition of propagation-redundant clauses, the assignment ω does
+not necessarily assign the same variables as α. To deal with this, we use the idea
+of the so-called dual-rail encoding [10, 30, 8]. In the dual-rail encoding, a given
+variablex is replaced by two new variables xp andxn. The intuitive idea is that
+xp is true whenever the original variable x is supposed to be true and xn is true
+wheneverx is supposed to be false. If bothxp andxn are false, thenx is supposed
+to be unassigned. Finally,xp andxn cannot be true at the same time. Thus, the
+dual-rail encodings of a clause are deﬁned as follows: Let C =P∨N be a clause
+withP =x1∨···∨ xk containing only positive literals and N =xk+1∨···∨ xm
+containing only negative literals. Further, letxp
+1,xn
+1,...,x p
+m,xn
+m be new variables.
+Then, the positive dual-rail encoding Cp of C is the clause
+xp
+1∨···∨ xp
+k∨xn
+k+1∨···∨ xn
+m,
+and the negative dual-rail encoding Cn of C is the clause
+xn
+1∨···∨ xn
+k∨xp
+k+1∨···∨ xp
+m.
+We can now deﬁne the PR reduct as follows:
+Deﬁnition 7. Let F be a formula and α an assignment. Then, the PR reduct
+prα(F ) of F and α is the formula G∧C whereC is the clause that blocks α and
+G is the union of the following sets of clauses where all the si are new variables:
+{xp∨xn|x∈ var(F )\ var(α)},
+{si∨ touchedα(Di)∨ untouchedα(Di)p|Di∈F},
+{Ln∨si|Di∈F and L⊆ untouchedα(Di)
+such that F ↾α⁄⊣1 untouchedα(Di)\L}.
+In the last set, if L is empty, we obtain a unit clause with the literal si.
+10
+We thus keep all the variables assigned byα but introduce the dual-rail variants
+for variables ofF not assigned byα. The clauses of the form xp∨xn ensure that
+for a variable x, the two variables xp and xn cannot be true at the same time.
+The main idea is that satisfying assignments of the PR reduct correspond to
+assignments of the formula F : from a satisfying assignment τ of the PR reduct
+we obtain an assignmentω over the variables of the original formulaF as follows:
+ω(x) =
+
+
+
+τ(x) if x∈ var(τ)∩ var(F ),
+1 if τ(xp) = 1,
+0 if τ(xn) = 1.
+Analogously, we obtain from ω a satisfying assignment τ of the ﬁltered positive
+reduct prα(F ) as follows:
+τ(x) =
+
+
+
+ω(x) if x∈ var(α);
+1 if x =xp and ω(x) = 1, or
+if x =xn and ω(x) = 0, or
+if x =si and ω satisﬁes Di;
+0 otherwise.
+To prove that the clause that blocks an assignment α is propagation redundant
+w.r.t. a formulaF if the PR reduct ofF andα is satisﬁable, we use the following:
+Lemma 1. Let F be a formula and let α and ω be two assignments such that
+F ↾α⊣1 F ↾ω. Then, F ↾α⊣1 F ↾ωx for every literal x such that var (x)∈ var(α).
+Proof. Let D↾ωx ∈ F ↾ωx. We show that F ↾α ⊣1 D↾ωx. Clearly, x /∈ D for
+otherwise D↾ωx =⊤, which would imply D↾ωx /∈ F ↾ωx. Therefore, the only
+possible diﬀerence betweenD↾ω andD↾ωx is thatx is contained inD↾ω but not
+in D↾ωx. Now, since var(x)∈ var(α), we know that var(x) /∈ F ↾α. But then,
+F ↾α⊣1 D↾ωx if and only if F ↾α⊣1 D↾ω and thus F ↾α⊣1 F ↾ωx.
+We can now show that the PR reduct precisely characterizes the propagation-
+redundant clauses:
+Theorem 3. Let F be a formula, α an assignment, and C the clause that
+blocks α. Then, C is propagation redundant with respect to F if and only if
+the PR reduct prα(F ) of F and α is satisﬁable.
+Proof. For the “only if” direction, assume thatC is propagation redundant with
+respect to F , meaning that there exists an assignment ω such that ω satisﬁes
+C and F ↾α⊣1 F ↾ω. By Lemma 1, we can without loss of generality assume
+that var(α)⊆ var(ω). Now consider the assignment τ that corresponds to ω as
+explained before Lemma 1. We show that τ satisﬁes prα(F ). Since the clause
+C that blocks α is in prα(F ), it must be satisﬁed by ω. Since ω satisﬁes C, τ
+satisﬁesC. Also, by construction, τ never satisﬁes both xp andxn for a variable
+11
+x and so it satisﬁes the clauses xp∨xn. If, for a clause si∨ touchedα(Di)∨
+untouchedα(Di)p, τ satisﬁes si, then we know that ω satisﬁes Di and thus τ
+must satisfy touchedα(Di)∨ untouchedα(Di)p.
+It remains to show that τ satisﬁes the clause Ln∨si for every Di∈ F and
+every set L⊆ untouchedα(Di) such that F ↾α⁄⊣1 untouchedα(Di)\L. Assume
+to the contrary that, for such a clause, τ(si) = 0 and τ falsiﬁes all literals
+in Ln. Then, ω does not satisfy Di and it falsiﬁes all literals in L. But, from
+var(α)⊆ var(ω) we know that Di↾ω⊆ untouchedα(Di) and thus it follows that
+Di↾ω⊆ untouchedα(Di)\L. Hence, sinceF ↾α⁄⊣1 untouchedα(Di)\L, we conclude
+that F ↾α⁄⊣1 Di↾ω, a contradiction.
+For the “if” direction, assume that there exists a satisfying assignment τ
+of prα(F ) and consider the assignment ω that corresponds to τ as explained
+before Lemma 1. Since C∈ prα(F ), ω must satisfy C. It remains to show that
+F ↾α⊣1 F ↾ω. LetDi↾ω∈F ↾ω. Then,ω does not satisfyDi and so touchedα(Di)∨
+untouchedα(Di)p is falsiﬁed by τ, implying that τ must falsify si. As var(α)⊆
+var(ω), we know thatDi↾ω⊆ untouchedα(Di), meaning thatDi↾ω is of the form
+untouchedα(Di)\L for some setL⊆ untouchedα(Di) such thatω falsiﬁesL. But
+then the clause Ln∨si cannot be contained in prα(F ) since it would be falsiﬁed
+byτ. We thus conclude thatF ↾ω⊣1 untouchedα(Di)\L and soF ↾ω⊣1 Di↾ω.
+Note that the last set of clauses of the PR reduct, in principle has exponentially
+many clauses w.r.t. the length of the largest original clause. We leave it to future
+work to answer the question whether non-exponential encodings exist. But even
+if a polynomial encoding can be found, we doubt its usefulness in practice.
+Implementation
+We implemented a clean-slate SDCL solver, called SaDiCaL, that can learn
+PR clauses using either the positive reduct or the ﬁltered positive reduct. It con-
+sists of around 3K lines of C and is based on an eﬃcient CDCL engine using
+state-of-the-art algorithms, data structures, and heuristics, including a variable-
+move-to-front decision heuristic [5], a sophisticated restart policy [4], and ag-
+gressive clause-data-based reduction [2]. Our implementation provides a simple
+but eﬃcient framework to evaluate new SDCL-inspired ideas and heuristics.
+The implementation closely follows the pseudo-code shown in Fig. 1 and
+computes the pruning predicate before every decision. This is costly in general,
+but allows the solver to detect PR clauses as early as possible. Our goal is
+to determine whether short PR proofs can be found automatically. The solver
+produces PR proofs and we veriﬁed all the presented results using proof checkers.
+The source code of SaDiCaL is available at http://fmv.jku.at/sadical.
+Two aspects of SDCL are crucial: the pruning predicate and the decision
+heuristics. For the pruning predicate we ran experiments with both the positive
+reduct and the ﬁltered positive reduct. The initially proposed decision heuristics
+for SDCL [20] are as follows: Pick the variable that occurs most frequently in
+short clauses. Also, apart from the root-node branch, assign only literals that
+occur in clauses that are touched but not satisﬁed by the current assignment.
+12
+We added another restriction: whenever a (ﬁltered) positive reduct is sat-
+isﬁable, make all literals in the witness (i.e., the satisfying assignment of the
+pruning predicate) that disagree with the current assignment more important
+than any other literal in the formula. This restriction is removed when the solver
+backtracks to the root node (i.e., when a unit clause is learned) and added again
+when a new PR clause is found. The motivation of this restriction is as follows:
+we observed that literals in the witness that disagree with the current assign-
+ment typically occur in short PR clauses; making them more important than
+other literals increases the likelihood of learning short PR clauses.
+Evaluation
+In the following, we demonstrate that the ﬁltered positive reduct allows our
+SDCL solver to prove unsatisﬁability of formulas well-known for having only
+exponential-size resolution proofs. We start with Tseitin formulas [32, 11]. In
+short, a Tseitin formula represents the following graph problem: Given a graph
+with 0/1-labels for each vertex such that an odd number of vertices has label
+1, does there exist a subset of the edges such that (after removing edges not
+in the subset) every vertex with label 0 has an even degree and every vertex
+with label 1 has an odd degree? The answer is no as the sum of all degrees
+is always even. The formula is therefore unsatisﬁable by construction. Tseitin
+formulas deﬁned over expander graphs require resolution proofs of exponential
+size [33] and also appear hard for SDCL when using the ordinary positive reduct
+as pruning predicate. We compare three settings, all with proof logging:
+(1) plain CDCL,
+(2) SDCL with the positive reduct pα(F ), and
+(3) SDCL with the ﬁltered positive reduct fα(F ).
+Additionally, we include the winner of the 2018 SAT Competition: the CDCL-
+based solver MapleLCMDistChronoBT (short MLBT) [29]. The results are shown
+in Table 1. The last column shows the proof-validation times by the formally
+veriﬁed checker in ACL2. To verify the proofs for all our experiments, we did the
+following: We started with the PR proofs produced by our SDCL solver using
+the ﬁltered positive reduct. We then translated them into DRAT proofs using
+the pr2drat tool [17]. Finally, we used the drat-trim checker to optimize the
+proofs (i.e., to remove redundant proof parts) and to convert them into theLRAT
+format, which is the format supported by the formally veriﬁed proof checker.
+Table 1 shows the performance on small (Urquhart-s3*), medium (Urquhart-
+s4*), and large (Urquhart-s5*) Tseitin formulas running on a Xeon E5-2690 CPU
+2.6 GHz with 64 GB memory. 5 Only our solver with the ﬁltered positive reduct
+is able to eﬃciently prove unsatisﬁability of all these instances. Notice that
+with the ordinary positive reduct it is impossible to solve any of the formulas.
+There may actually be a theoretical barrier here. The LSDCL solver also uses the
+5 Log ﬁles, benchmarks and source code are available athttp://fmv.jku.at/sadical.
+13
+T able 1. Runtime Comparison (in Seconds) on the Tseitin Benchmarks [33, 11].
+formula MLBT [29] LSDCL [20] plain pα(F ) fα(F ) ACL2
+Urquhart-s3-b1 2.95 5.86 16.31 > 3600 0.02 0.09
+Urquhart-s3-b2 1.36 2.4 2.82 > 3600 0.03 0.13
+Urquhart-s3-b3 2.28 19.94 2.08 > 3600 0.03 0.16
+Urquhart-s3-b4 10.74 32.42 7.65 > 3600 0.03 0.17
+Urquhart-s4-b1 86.11 583.96 > 3600 > 3600 0.32 2.37
+Urquhart-s4-b2 154.35 1824.95 183.77 > 3600 0.11 0.78
+Urquhart-s4-b3 258.46 > 3600 129.27 > 3600 0.16 1.12
+Urquhart-s4-b4 > 3600 > 3600 > 3600 > 3600 0.14 1.17
+Urquhart-s5-b1 > 3600 > 3600 > 3600 > 3600 1.27 9.86
+Urquhart-s5-b2 > 3600 > 3600 > 3600 > 3600 0.58 4.38
+Urquhart-s5-b3 > 3600 > 3600 > 3600 > 3600 1.67 17.99
+Urquhart-s5-b4 > 3600 > 3600 > 3600 > 3600 2.91 24.24
+T able 2. Runtime Comparison (in Seconds) on the Pigeon-Hole Formulas.
+formula MLBT [29] LSDCL [20] plain pα(F ) fα(F ) ACL2
+hole20 > 3600 1.13 > 3600 0.22 0.55 6.78
+hole30 > 3600 8.81 > 3600 1.71 4.30 87.58
+hole40 > 3600 43.10 > 3600 7.94 20.38 611.24
+hole50 > 3600 149.67 > 3600 25.60 68.46 2792.39
+positive reduct, but only for assignments with at most two decision literals. As a
+consequence, the overhead of the positive reduct is small. In the future we plan
+to develop meaningful limits for SaDiCaL as well.
+We also ran experiments with the pigeon-hole formulas. Although these for-
+mulas are hard for resolution, they can be solved eﬃciently with SDCL using
+the positive reduct [20]. Table 2 shows a runtime comparison, again including
+PR proof logging, for pigeon-hole formulas of various sizes. Notice that the com-
+putational costs of the solver with the ﬁltered positive reduct are about 3 to 4
+times as large compared to the solver with the positive reduct. This is caused by
+the overhead of computing the ﬁltering. The sizes of the PR proofs produced by
+both versions are similar. Our solver with the positive reduct is about four times
+as fast compared to the SDCL version (only positive reduct) of Lingeling [20],
+in short LSDCL. As the heuristics and proof sizes of our solver and LSDCL are
+similar, the better performance is due to our dedicated SDCL implementation.
+Finally, we performed experiments with the recently released 2018 SAT Com-
+petition benchmarks. We expected slow performance on most benchmarks due
+to the high overhead of solving pruning predicates before making decisions. How-
+ever, our solver outperformed the participating solvers on mutilated chessboard
+problems [27] which were contributed by Alexey Porkhunov (see Table 3).
+For example, our solver can prove unsatisﬁability of the 18 × 18 mutilated
+chessboard in 43.88 seconds. The ﬁltered positive reduct was crucial to obtain
+this result. The other solvers, apart from CaDiCaL solving it in 828 seconds,
+14
+T able 3. Runtime Comparison (in Seconds) on the Mutilated Chessboard Formulas.
+formula MLBT [29] LSDCL [20] plain pα(F ) fα(F ) ACL2
+mchess 15 51.53 1473.11 2480.67 > 3600 13.14 29.12
+mchess 16 380.45 > 3600 2115.75 > 3600 15.52 36.86
+mchess 17 2418.35 > 3600 > 3600 > 3600 25.54 57.83
+mchess 18 > 3600 > 3600 > 3600 > 3600 43.88 100.71
+timed out after 5000 seconds during the competition (on competition hardware).
+Resolution proofs of mutilated chessboard problems are exponential in size [1],
+which explains the poor performance of CDCL solvers. On these problems, like
+on the Tseitin formulas, our solver performed much better with the ﬁltered
+positive reduct than with the positive reduct. The results are robust with respect
+to partially and completely scrambling formulas as suggested by [6], with the
+exception of the pigeon hole formulas, which needs to be investigated.
+Conclusion
+We introduced two new SAT encodings for pruning the search space in satis-
+faction-driven clause learning (SDCL). The ﬁrst encoding, called the ﬁltered
+positive reduct, is easily solvable and prunes the search space more aggressively
+than the positive reduct (which was used when SDCL was initially introduced).
+The second encoding, called the PR reduct, might not be useful in practice
+though it precisely characterizes propagation redundancy.
+Based on the ﬁltered positive reduct, we implemented an SDCL solver and
+our experiments show that the solver can eﬃciently prove the unsatisﬁability
+of the Tseitin formulas, the pigeon-hole formulas, and the mutilated chessboard
+problems. For all these formulas, CDCL solvers require exponential time due to
+theoretical restrictions. Moreover, to the best of our knowledge, our solver is the
+ﬁrst to generate machine-checkable proofs of unsatisﬁability of these formulas.
+We certiﬁed our results using a formally veriﬁed proof checker.
+Although our SDCL solver can already produce proofs of formulas that are
+too hard for CDCL solvers, it is still outperformed by CDCL solvers on many
+simpler formulas. This seems to suggest that also in SAT solving, there is no free
+lunch. Nevertheless, we believe that the performance of SDCL on simple formu-
+las can be improved by tuning the solver more carefully, e.g., by only learning
+propagation-redundant clauses when this is really beneﬁcial, or by coming up
+with a dedicated decision heuristic. To deal with these problems, we are currently
+investigating an approach based on reinforcement learning.
+Considering our results, we believe that SDCL is a promising SAT-solving
+paradigm for formulas that are too hard for ordinary CDCL solvers. Finally,
+proofs of challenging problems can be enormous in size, such as the 2 petabytes
+proof of Schur Number Five [16]; SDCL improvements have the potential to
+produce proofs that are substantially smaller and faster to verify.
+15
+References
+1. Alekhnovich, M.: Mutilated chessboard problem is exponentially hard for resolu-
+tion. Theoretical Computer Science 310(1-3), 513–525 (2004)
+2. Audemard, G., Simon, L.: Predicting learnt clauses quality in modern SAT solvers.
+In: Proc. of the 21st Int. Joint Conference on Artiﬁcial Intelligence (IJCAI 2019).
+pp. 399–404 (2009)
+3. Biere, A.: Splatz, Lingeling, Plingeling, Treengeling, YalSAT Entering the SAT
+Competition 2016. In: Proc. of SAT Competition 2016 – Solver and Benchmark
+Descriptions. Dep. of Computer Science Series of Publications B, vol. B-2016-1,
+pp. 44–45. University of Helsinki (2016)
+4. Biere, A., Fr¨ ohlich, A.: Evaluating CDCL restart schemes. In: Proc. of the 6th
+Pragmatics of SAT Workshop (PoS 2015) (2015), to be published.
+5. Biere, A., Fr¨ ohlich, A.: Evaluating CDCL variable scoring schemes. In: Proc. of
+the 18th Int. Conference on Theory and Applications of Satisﬁability Testing (SAT
+2015). LNCS, vol. 9340, pp. 405–422. Springer (2015)
+6. Biere, A., Heule, M.J.H.: The eﬀect of scrambling CNFs. In: Proc. of the 9th
+Pragmatics of SAT Workshop (PoS 2018) (2018), to be published.
+7. Biere, A., Heule, M.J.H., van Maaren, H., Walsh, T. (eds.): Handbook of Satisﬁa-
+bility. IOS Press (2009)
+8. Bonet, M.L., Buss, S., Ignatiev, A., Marques-Silva, J., Morgado, A.: MaxSAT res-
+olution with the dual rail encoding. In: Proc. of the 32nd AAAI Conference on
+Artiﬁcial Intelligence (AAAI 2018). AAAI Press (2018)
+9. Brickenstein, M., Dreyer, A.: PolyBoRi: A framework for gr¨ obner-basis computa-
+tions with boolean polynomials. Journal of Symbolic Computation 44(9), 1326 –
+1345 (2009), eﬀective Methods in Algebraic Geometry
+10. Bryant, R.E., Beatty, D., Brace, K., Cho, K., Sheﬄer, T.: COSMOS: A compiled
+simulator for MOS circuits. In: Proc. of the 24th ACM/IEEE Design Automation
+Conference (DAC 87). pp. 9–16. ACM (1987)
+11. Chatalic, P., Simon, L.: Multi-resolution on compressed sets of clauses. In: Proc. of
+the 12th IEEE Int. Conference on Tools with Artiﬁcial Intelligence (ICTAI 2000).
+pp. 2–10 (2000)
+12. Cruz-Filipe, L., Marques-Silva, J., Schneider-Kamp, P.: Eﬃcient certiﬁed resolution
+proof checking. In: Proc. of the 23rd Int. Conference on Tools and Algorithms for
+the Construction and Analysis of Systems (TACAS 2017). LNCS, vol. 10205, pp.
+118–135 (2017)
+13. Dantchev, S.S., Riis, S.: “Planar” tautologies hard for resolution. In: Proc. of the
+42nd Annual Symposium on Foundations of Computer Science (FOCS 2001). pp.
+220–229. IEEE Computer Society (2001)
+14. Devriendt, J., Bogaerts, B., Bruynooghe, M., Denecker, M.: Improved static sym-
+metry breaking for SAT. In: Proc. of the 19th Int. Conference on Theory and
+Applications of Satisﬁability Testing (SAT 2016). LNCS, vol. 9710, pp. 104–122.
+Springer (2016)
+15. Haken, A.: The intractability of resolution. Theoretical Computer Science 39, 297–
+308 (1985)
+16. Heule, M.J.H.: Schur number ﬁve. In: Proc. of the 32nd AAAI Conference on
+Artiﬁcial Intelligence (AAAI 2018). AAAI Press (2018)
+17. Heule, M.J.H., Biere, A.: What a diﬀerence a variable makes. In: Proc. of the 24th
+Int. Conference on Tools and Algorithms for the Construction and Analysis of
+Systems (TACAS 2018). LNCS, vol. 10806, pp. 75–92. Springer (2018)
+16
+18. Heule, M.J.H., Jr., W.A.H., Kaufmann, M., Wetzler, N.: Eﬃcient, veriﬁed checking
+of propositional proofs. In: Proc. of the 8th Int. Conference on Interactive Theorem
+Proving (ITP 2017). LNCS, vol. 10499, pp. 269–284. Springer (2017)
+19. Heule, M.J.H., Kiesl, B., Biere, A.: Short proofs without new variables. In: Proc. of
+the 26th Int. Conference on Automated Deduction (CADE-26). LNCS, vol. 10395,
+pp. 130–147. Springer (2017)
+20. Heule, M.J.H., Kiesl, B., Seidl, M., Biere, A.: PRuning through satisfaction. In:
+Proc. of the 13th Haifa Veriﬁcation Conference (HVC 2017). LNCS, vol. 10629,
+pp. 179–194. Springer (2017)
+21. Heule, M.J.H., van Maaren, H.: Aligning CNF- and equivalence-reasoning. In: Proc.
+of the 7th Int. Conference on Theory and Applications of Satisﬁability Testing
+(SAT 2004) (2004)
+22. J¨ arvisalo, M., Heule, M.J.H., Biere, A.: Inprocessing rules. In: Proc. of the 6th Int.
+Joint Conference on Automated Reasoning (IJCAR 2012). LNCS, vol. 7364, pp.
+355–370. Springer (2012)
+23. Kiesl, B., Seidl, M., Tompits, H., Biere, A.: Super-blocked clauses. In: Proc. of
+the 8th Int. Joint Conference on Automated Reasoning (IJCAR 2016). LNCS, vol.
+9706, pp. 45–61. Springer (2016)
+24. Kullmann, O.: On a generalization of extended resolution. Discrete Applied Math-
+ematics 96-97, 149–176 (1999)
+25. Marques-Silva, J., Lynce, I., Malik, S.: Conﬂict-driven clause learning SAT solvers.
+In: Handbook of Satisﬁability, pp. 131–153. IOS Press (2009)
+26. Marques-Silva, J.P., Sakallah, K.A.: GRASP: A search algorithm for propositional
+satisﬁability. IEEE Transactions on Computers 48(5), 506–521 (1999)
+27. McCarthy, J.: A tough nut for proof procedures. Memo 16, Stanford Artiﬁcial
+Intelligence Project (July 1964)
+28. Moskewicz, M.W., Madigan, C.F., Zhao, Y., Zhang, L., Malik, S.: Chaﬀ: Engineer-
+ing an eﬃcient SAT solver. In: Proc. of the 38th Design Automation Conference
+(DAC 2001). pp. 530–535. ACM (2001)
+29. Nadel, A., Ryvchin, V.: Chronological backtracking. In: Proc. of the 21st Int. Con-
+ference on Theory and Applications of Satisﬁability Testing (SAT 2018). LNCS,
+vol. 10929, pp. 111–121. Springer (2018)
+30. Palopoli, L., Pirri, F., Pizzuti, C.: Algorithms for selective enumeration of prime
+implicants. Artiﬁcial Intelligence 111(1), 41 – 72 (1999)
+31. Soos, M., Nohl, K., Castelluccia, C.: Extending SAT solvers to cryptographic prob-
+lems. In: Proc. of the 12th Int. Conference on Theory and Applications of Satisﬁ-
+ability Testing (SAT 2009). LNCS, vol. 5584, pp. 244–257. Springer (2009)
+32. Tseitin, G.S.: On the complexity of derivation in propositional calculus. In: Au-
+tomation of Reasoning: 2: Classical Papers on Computational Logic 1967–1970.
+pp. 466–483. Springer (1983)
+33. Urquhart, A.: Hard examples for resolution. Journal of the ACM 34(1), 209–219
+(1987)
+17

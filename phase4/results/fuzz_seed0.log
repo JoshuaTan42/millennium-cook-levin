@@ -1,0 +1,12 @@
+case 0 ok (rand n=59 m=251)
+CASE 17 (mchess 2x2): PROBLEMS ['sdcl: prcheck.py did not verify: FAIL line 1: empty clause not RUP', 'plain: prcheck.py did not verify: FAIL line 1: empty clause not RUP', 'unfiltered: prcheck.py did not verify: FAIL line 1: empty clause not RUP']
+case 20 ok (tseitin n=8 parity=1)
+CASE 35 (cliquecol 7 2 3): PROBLEMS ['sdcl: status UNKNOWN (rc=0) after 120.3s']
+case 40 ok (rand n=54 m=243)
+case 60 ok (rand n=52 m=104)
+case 80 ok (cliquecol 8 4 2)
+CASE 92 (cliquecol 8 2 3): PROBLEMS ['sdcl: status UNKNOWN (rc=0) after 120.2s', 'unfiltered: status UNKNOWN (rc=0) after 120.2s']
+case 100 ok (rand n=59 m=177)
+case 120 ok (rand n=29 m=58)
+case 140 ok (mchess 3x6)
+DONE seed=0 cases=150 bad=3 sat=30 unsat=120

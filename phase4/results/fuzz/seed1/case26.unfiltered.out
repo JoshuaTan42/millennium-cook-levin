@@ -1,0 +1,29 @@
+c mode unfiltered
+c vars 63 clauses 438
+c stat conflicts 1017
+c stat decisions 1387
+c stat propagations 15659
+c stat restarts 6
+c stat reductions 0
+c stat learnt_clauses 1089
+c stat removed_clauses 0
+c stat reduct_checks 1443
+c stat reduct_sat 73
+c stat reduct_unsat 1370
+c stat reduct_limit 0
+c stat inner_conflicts 1596
+c stat inner_decisions 562
+c stat inner_propagations 37077
+c stat pr_learnt 73
+c stat pr_lits 449
+c stat filter_tests 0
+c stat filtered_clauses 0
+c stat reduct_clauses 1087210
+c stat reduct_lits 3870758
+c stat filter_propagations 0
+c stat max_reduct_vars 49
+c stat cost 4056
+c stat time_reduct_build 2.605
+c stat time_inner 4.854
+c stat time_total 9.438
+s UNSATISFIABLE

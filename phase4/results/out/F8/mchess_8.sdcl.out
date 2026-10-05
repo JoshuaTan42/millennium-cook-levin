@@ -1,0 +1,30 @@
+c mode sdcl
+c vars 108 clauses 344
+c prunes_as_conflicts 0
+c stat conflicts 178
+c stat decisions 647
+c stat propagations 10659
+c stat restarts 1
+c stat reductions 0
+c stat learnt_clauses 559
+c stat removed_clauses 0
+c stat reduct_checks 1020
+c stat reduct_sat 382
+c stat reduct_unsat 638
+c stat reduct_limit 0
+c stat inner_conflicts 832
+c stat inner_decisions 1744
+c stat inner_propagations 47805
+c stat pr_learnt 382
+c stat pr_lits 2382
+c stat filter_tests 200603
+c stat filtered_clauses 103590
+c stat reduct_clauses 320570
+c stat reduct_lits 989680
+c stat filter_propagations 2731174
+c stat max_reduct_vars 86
+c stat cost 2030
+c stat time_reduct_build 2.048
+c stat time_inner 1.140
+c stat time_total 3.666
+s UNSATISFIABLE

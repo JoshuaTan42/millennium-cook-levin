@@ -1,0 +1,183 @@
+c SaDiCaL SAT Solver
+c Copyright (C) 2018 by Armin Biere JKU
+c
+c Version 00n 47bff7ef874226b4a00ebd20fedf88eb7c4a3a39
+c Compiler gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+c Options gcc -Wall -O3 -DNDEBUG -DNLOG
+c proof path '/mnt/d/PvsNP/phase4/results/proofs_sadical/F3/php_11_10.sadical.dpr'
+c
+c non default options:
+c
+c --binary=false
+c --force=true
+c --witness=false
+c
+c parsing '/mnt/d/PvsNP/phase4/instances/f3/php_11_10.cnf'
+c found 'p cnf 110 561' header
+c parsed DIMACS in 0.00 seconds
+c 
+c
+c   time      reduced redundant irredundant
+c       space  restarts glue      variables
+c           level conflicts size    remaining
+c
+c s 0.01 0.1 0.9 0 0 9 0 1.9 1.9 551 109 99%
+c s 0.02 0.1 0.9 0 0 18 0 1.9 1.9 542 108 98%
+c s 0.03 0.1 0.9 0 0 27 0 1.9 1.9 534 107 97%
+c s 0.04 0.1 0.9 0 0 36 0 1.9 1.9 527 106 96%
+c s 0.05 0.1 0.9 0 0 45 0 1.9 1.9 521 105 95%
+c s 0.06 0.1 0.9 0 0 54 0 1.9 1.9 516 104 95%
+c s 0.07 0.1 0.9 0 0 63 0 1.9 1.9 512 103 94%
+c s 0.09 0.1 0.9 0 0 72 0 1.9 1.9 509 102 93%
+c s 0.09 0.1 0.9 0 0 81 0 1.9 1.9 507 101 92%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 506 100 91%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 505 99 90%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 495 98 89%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 485 97 88%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 475 96 87%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 465 95 86%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 455 94 85%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 445 93 85%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 435 92 84%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 425 91 83%
+c s 0.10 0.1 0.9 0 0 90 0 1.9 1.9 415 90 82%
+c
+c   time      reduced redundant irredundant
+c       space  restarts  glue     variables
+c           level conflicts  size   remaining
+c
+c s 0.11 0.1 0.9 0 0 98 0 1.9 1.9 406 89 81%
+c s 0.11 0.1 0.9 0 0 106 0 1.9 1.9 398 88 80%
+c s 0.11 0.1 0.9 0 0 114 0 1.9 1.9 391 87 79%
+c s 0.12 0.1 0.9 0 0 122 0 1.9 1.9 385 86 78%
+c s 0.13 0.1 0.9 0 0 130 0 1.9 1.9 380 85 77%
+c s 0.13 0.1 0.9 0 0 138 0 1.9 1.9 376 84 76%
+c s 0.14 0.1 0.9 0 0 146 0 1.9 1.9 373 83 75%
+c s 0.14 0.1 0.9 0 0 154 0 1.9 1.9 371 82 75%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 370 81 74%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 369 80 73%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 360 79 72%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 351 78 71%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 342 77 70%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 333 76 69%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 324 75 68%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 315 74 67%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 306 73 66%
+c s 0.15 0.1 0.9 0 0 162 0 1.9 1.9 297 72 65%
+c s 0.15 0.1 0.9 0 0 169 0 1.9 1.9 289 71 65%
+c s 0.15 0.1 0.9 0 0 176 0 1.9 1.9 282 70 64%
+c
+c   time      reduced redundant irredundant
+c       space  restarts   glue     variables
+c           level conflicts   size   remaining
+c
+c s 0.16 0.1 0.9 0 0 183 0 1.9 1.9 276 69 63%
+c s 0.17 0.1 0.9 0 0 190 0 1.9 1.9 271 68 62%
+c s 0.17 0.1 0.9 0 0 197 0 1.9 1.9 267 67 61%
+c s 0.17 0.1 0.9 0 0 204 0 1.9 1.9 264 66 60%
+c s 0.18 0.1 0.9 0 0 211 0 1.9 1.9 262 65 59%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 261 64 58%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 260 63 57%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 252 62 56%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 244 61 55%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 236 60 55%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 228 59 54%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 220 58 53%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 212 57 52%
+c s 0.18 0.1 0.9 0 0 218 0 1.9 1.9 204 56 51%
+c s 0.19 0.1 0.9 0 0 224 0 1.9 1.9 197 55 50%
+c s 0.19 0.1 0.9 0 0 230 0 1.9 1.9 191 54 49%
+c s 0.19 0.1 0.9 0 0 236 0 1.9 1.9 186 53 48%
+c s 0.19 0.1 0.9 0 0 242 0 1.9 1.9 182 52 47%
+c s 0.20 0.1 0.9 0 0 248 0 1.9 1.9 179 51 46%
+c s 0.20 0.1 0.9 0 0 254 0 1.9 1.9 177 50 45%
+c
+c   time      reduced redundant irredundant
+c       space  restarts   glue     variables
+c           level conflicts   size   remaining
+c
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 176 49 45%
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 175 48 44%
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 168 47 43%
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 161 46 42%
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 154 45 41%
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 147 44 40%
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 140 43 39%
+c s 0.21 0.1 0.9 0 0 260 0 1.9 1.9 133 42 38%
+c s 0.21 0.1 0.9 0 0 265 0 1.9 1.9 127 41 37%
+c s 0.22 0.1 0.9 0 0 270 0 1.9 1.9 122 40 36%
+c s 0.22 0.1 0.9 0 0 275 0 1.9 1.9 118 39 35%
+c s 0.23 0.1 0.9 0 0 280 0 1.9 1.9 115 38 35%
+c s 0.23 0.1 0.9 0 0 285 0 1.9 1.9 113 37 34%
+c s 0.23 0.1 0.9 0 0 290 0 1.9 1.9 112 36 33%
+c s 0.25 0.1 0.9 0 0 290 0 1.9 1.9 111 35 32%
+c s 0.25 0.1 0.9 0 0 290 0 1.9 1.9 105 34 31%
+c s 0.25 0.1 0.9 0 0 290 0 1.9 1.9 99 33 30%
+c s 0.25 0.1 0.9 0 0 290 0 1.9 1.9 93 32 29%
+c s 0.25 0.1 0.9 0 0 290 0 1.9 1.9 87 31 28%
+c s 0.25 0.1 0.9 0 0 290 0 1.9 1.9 81 30 27%
+c
+c   time      reduced redundant irredundant
+c       space  restarts   glue    variables
+c           level conflicts   size  remaining
+c
+c s 0.25 0.1 0.9 0 0 294 0 1.9 1.9 76 29 26%
+c s 0.25 0.1 0.8 0 0 298 0 1.8 1.8 72 28 25%
+c s 0.26 0.1 0.8 0 0 302 0 1.8 1.8 69 27 25%
+c s 0.26 0.1 0.8 0 0 306 0 1.8 1.8 67 26 24%
+c s 0.26 0.1 0.8 0 0 310 0 1.8 1.8 66 25 23%
+c s 0.26 0.1 0.8 0 0 310 0 1.8 1.8 65 24 22%
+c s 0.26 0.1 0.8 0 0 310 0 1.8 1.8 60 23 21%
+c s 0.26 0.1 0.8 0 0 310 0 1.8 1.8 55 22 20%
+c s 0.26 0.1 0.8 0 0 310 0 1.8 1.8 50 21 19%
+c s 0.26 0.1 0.8 0 0 310 0 1.8 1.8 45 20 18%
+c s 0.26 0.1 0.8 0 0 325 0 1.8 1.8 41 19 17%
+c s 0.27 0.1 0.8 0 0 340 0 1.8 1.8 38 18 16%
+c s 0.27 0.1 0.8 0 0 355 0 1.8 1.8 36 17 15%
+c s 0.27 0.1 0.8 0 0 370 0 1.8 1.8 35 16 15%
+c s 0.27 0.1 0.8 0 0 370 0 1.8 1.8 34 15 14%
+c s 0.27 0.1 0.8 0 0 370 0 1.8 1.8 30 14 13%
+c s 0.27 0.1 0.8 0 0 370 0 1.8 1.8 26 13 12%
+c s 0.27 0.1 0.8 0 0 370 0 1.8 1.8 22 12 11%
+c s 0.27 0.1 0.8 0 0 372 1 1.8 1.8 19 11 10%
+c s 0.27 0.1 0.8 0 0 373 1 1.8 1.8 16 10 9%
+c
+c   time      reduced redundant irredundant
+c       space  restarts   glue    variables
+c           level conflicts   size remaining
+c
+c s 0.27 0.1 0.8 0 0 374 1 1.8 1.8 14 9 8%
+c s 0.27 0.1 0.8 0 0 375 1 1.8 1.8 12 8 7%
+c 0 0.27 0.1 0.8 0 0 377 1 1.8 1.8 12 0 0%
+c
+s UNSATISFIABLE
+c
+c simplifications:           102           4  conflicts/simplification  100%
+c reductions:                  0           0  conflicts/reduction       100%
+c restarts:                    0           0  conflicts/restart         100%
+c conflicts:                 377        1395  conflicts/sec              57%
+c decisions:                 328        1213  decisions/sec              37%
+c propagations:            84020         0.3  millions/sec               90%
+c
+c pure:                       49          13% of look-aheads
+c look-ahead:                377         115% of outer decisions         42%
+c pruned:                    322          85% of outer conflicts         49%
+c generated reducts:         596          54% satisfiable
+c average size:               47          26% of all clauses
+c pruning failed:            274          46% per reduct
+c filter checks:            9374          34% of outer satisfied clauses
+c average filtered:          0.1           0% per reduct
+c assumed literals:        13442         1.4  per filter check
+c
+c collected clauses:        0.03 MB       98% of allocated clauses        5%
+c allocated clauses:        0.03 MB        8% of allocated memory         5%
+c maximum heap:             0.08 MB        8% of resident set size       82%
+c
+c looking:                  0.01 sec       3% of process time
+c filtering:                0.07 sec      27% of process time
+c pruning:                  0.20 sec      74% of process time
+c simplifying:              0.00 sec       2% of process time
+c
+c resident set size:        0.96 MB
+c total process time:       0.27 sec
+RC=0

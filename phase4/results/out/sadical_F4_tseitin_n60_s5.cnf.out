@@ -1,0 +1,94 @@
+c SaDiCaL SAT Solver
+c Copyright (C) 2018 by Armin Biere JKU
+c
+c Version 00n 47bff7ef874226b4a00ebd20fedf88eb7c4a3a39
+c Compiler gcc (Ubuntu 11.4.0-1ubuntu1~22.04) 11.4.0
+c Options gcc -Wall -O3 -DNDEBUG -DNLOG
+c proof path '/mnt/d/PvsNP/phase4/results/proofs_sadical/F4/tseitin_n60_s5.sadical.dpr'
+c
+c non default options:
+c
+c --binary=false
+c --force=true
+c --witness=false
+c
+c parsing '/mnt/d/PvsNP/phase4/instances/f4/tseitin_n60_s5.cnf'
+c found 'p cnf 90 240' header
+c parsed DIMACS in 0.00 seconds
+c 
+c
+c   time      reduced redundant irredundant
+c       space  restarts glue     variables
+c           level conflicts size   remaining
+c
+c s 0.02 0.1 2.9 0 1 9 0 3.9 3.9 236 89 99%
+c s 0.05 0.1 3.3 0 2 18 0 4.3 4.3 230 87 97%
+c s 0.07 0.1 3.3 0 7 36 1 4.3 4.3 226 86 96%
+c s 0.17 0.1 3.4 0 8 294 1 4.4 4.4 222 85 94%
+c s 0.21 0.1 3.3 0 9 328 0 4.3 4.3 218 84 93%
+c - 0.87 0.2 4.7 1 19 2036 416 5.7 5.7 218 84 93%
+c - 1.23 0.2 4.9 2 19 4044 256 5.9 5.9 218 84 93%
+c s 7.85 0.3 4.8 2 19 5011 0 5.8 5.8 214 83 92%
+c s 7.87 0.3 4.8 2 20 5023 0 5.8 5.8 208 81 90%
+c s 7.88 0.3 4.8 2 21 5035 0 5.8 5.8 204 80 89%
+c s 7.99 0.3 4.7 2 23 5228 0 5.7 5.7 200 79 88%
+c s 8.02 0.3 4.6 2 24 5276 0 5.6 5.6 190 75 83%
+c s 8.04 0.3 4.6 2 25 5302 0 5.6 5.6 184 73 81%
+c s 8.07 0.3 4.5 2 26 5319 0 5.5 5.5 180 72 80%
+c s 8.08 0.3 4.5 2 28 5365 0 5.5 5.5 174 70 78%
+c s 8.11 0.3 4.5 2 30 5465 0 5.5 5.5 170 69 77%
+c s 8.16 0.3 4.4 2 32 5593 0 5.4 5.4 166 68 76%
+c s 8.18 0.3 4.4 2 37 5672 11 5.4 5.4 160 66 73%
+c s 8.20 0.3 4.4 2 40 5753 10 5.4 5.4 152 63 70%
+c s 8.23 0.3 4.3 2 42 5827 1 5.3 5.3 148 62 69%
+c
+c   time      reduced  redundant irredundant
+c       space   restarts    glue     variables
+c           level  conflicts    size   remaining
+c
+c s 8.34 0.3 4.3 2 44 6033 0 5.3 5.3 140 59 66%
+c s 8.36 0.3 4.3 2 47 6060 0 5.3 5.3 132 56 62%
+c s 8.37 0.3 4.3 2 49 6082 1 5.3 5.3 128 55 61%
+c s 8.39 0.3 4.2 2 51 6168 2 5.2 5.2 124 54 60%
+c s 8.42 0.3 4.2 2 53 6275 0 5.2 5.2 120 53 59%
+c - 8.42 0.3 4.2 3 57 6361 5 5.2 5.2 120 53 59%
+c s 8.48 0.3 4.2 3 80 7367 0 5.2 5.2 100 44 49%
+c s 8.51 0.3 4.2 3 93 7848 0 5.2 5.2 78 34 38%
+c s 8.52 0.3 4.1 3 101 8057 0 5.1 5.1 70 31 34%
+c s 8.52 0.3 4.1 3 104 8158 0 5.1 5.1 52 23 26%
+c s 8.52 0.3 4.1 3 108 8214 1 5.1 5.1 44 20 22%
+c s 8.52 0.3 4.1 3 108 8223 0 5.1 5.1 24 11 12%
+c s 8.52 0.3 4.1 3 108 8228 0 5.1 5.1 16 8 9%
+c 0 8.53 0.3 4.1 3 108 8230 0 5.1 5.1 16 0 0%
+c
+s UNSATISFIABLE
+c
+c simplifications:            30         274  conflicts/simplification  100%
+c reductions:                  3        2743  conflicts/reduction       100%
+c restarts:                  108          76  conflicts/restart         100%
+c conflicts:                8230         965  conflicts/sec              80%
+c decisions:                3179         373  decisions/sec              50%
+c propagations:           968823         0.1  millions/sec               88%
+c
+c pure:                        0           0% of look-aheads
+c look-ahead:               3179         100% of outer decisions         50%
+c pruned:                   2377          29% of outer conflicts         23%
+c generated reducts:        5417          44% satisfiable
+c average size:              218          64% of all clauses
+c pruning failed:           3040          56% per reduct
+c filter checks:          291894          25% of outer satisfied clauses
+c average filtered:          1.1           0% per reduct
+c assumed literals:       507841         1.7  per filter check
+c
+c collected clauses:        0.11 MB      100% of allocated clauses        0%
+c allocated clauses:        0.11 MB        7% of allocated memory         0%
+c maximum heap:             0.19 MB        9% of resident set size       56%
+c
+c looking:                  0.02 sec       0% of process time
+c filtering:                2.80 sec      33% of process time
+c pruning:                  8.42 sec      99% of process time
+c simplifying:              0.01 sec       0% of process time
+c
+c resident set size:        2.17 MB
+c total process time:       8.53 sec
+RC=0

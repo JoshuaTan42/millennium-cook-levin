@@ -1,0 +1,32 @@
+== php_9_8 sdcl
+c stat conflicts 162
+c stat restarts 1
+c stat reductions 0
+c stat reduct_checks 4767
+c stat inner_conflicts 9201
+c stat pr_learnt 2276
+c stat filter_tests 4311897
+c stat filtered_clauses 1357873
+c stat cost 14130
+c stat time_reduct_build 41.700
+c stat time_inner 14.898
+c stat time_total 61.326
+s UNSATISFIABLE
+s VERIFIED
+== php_9_8 unfiltered
+c stat conflicts 6475
+c stat restarts 30
+c stat reductions 3
+c stat reduct_checks 12626
+c stat inner_conflicts 115938
+c stat pr_learnt 2418
+c stat filter_tests 0
+c stat filtered_clauses 0
+c stat cost 135039
+c stat time_reduct_build 57.266
+c stat time_inner 105.329
+c stat time_total 187.940
+s UNSATISFIABLE
+s VERIFIED
+== php_11_10 sdcl
+s NOT VERIFIED

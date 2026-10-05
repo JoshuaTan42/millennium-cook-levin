@@ -1,0 +1,4 @@
+{"cadical": "UNSAT", "time": 1805.445, "model_ok": null, "family": "F2", "name": "rand500_n400_s1.cnf", "path": "f2/rand500_n400_s1.cnf", "size": 400, "limit": 7200}
+{"cadical": "UNSAT", "time": 3588.276, "model_ok": null, "family": "F2", "name": "rand500_n400_s6.cnf", "path": "f2/rand500_n400_s6.cnf", "size": 400, "limit": 7200}
+{"cadical": "UNSAT", "time": 1803.417, "model_ok": null, "family": "F2", "name": "rand500_n400_s8.cnf", "path": "f2/rand500_n400_s8.cnf", "size": 400, "limit": 7200}
+{"cadical": "UNSAT", "time": 2180.074, "model_ok": null, "family": "F2", "name": "rand500_n400_s9.cnf", "path": "f2/rand500_n400_s9.cnf", "size": 400, "limit": 7200}

@@ -1,0 +1,13 @@
+jobs total 1881, done 331, todo 1550
+[1/1550] F3 php_17_16.cnf plain -> TIMEOUT cost=4174144 wall=3600.184
+[2/1550] F3 php_13_12.cnf sdcl -> TIMEOUT cost=299581 wall=3600.502
+[3/1550] F3 php_15_14.cnf sdcl -> TIMEOUT cost=296040 wall=3600.555
+[4/1550] F3 php_26_25.cnf sdcl -> TIMEOUT cost=150945 wall=3601.21
+[5/1550] F3 php_17_16.cnf sdcl -> TIMEOUT cost=511245 wall=3601.322
+[6/1550] F3 php_31_30.cnf sdcl -> TIMEOUT cost=96887 wall=3600.508
+[7/1550] F3 php_21_20.cnf sdcl -> TIMEOUT cost=193282 wall=3601.42
+[8/1550] F3 php_15_14.cnf plain -> TIMEOUT cost=5294080 wall=3601.085
+[9/1550] F3 php_13_12.cnf plain -> TIMEOUT cost=6962048 wall=3601.658
+[10/1550] F3 php_26_25.cnf plain -> TIMEOUT cost=2786240 wall=3601.243
+[11/1550] F3 php_31_30.cnf plain -> TIMEOUT cost=2507520 wall=3600.616
+[12/1550] F3 php_21_20.cnf plain -> TIMEOUT cost=2854016 wall=3602.025
