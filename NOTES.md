@@ -2,6 +2,11 @@
 
 Status: **NOT PROVED**.
 
+Verification status (updated 2026-10-06):
+* leanchecker: passed per-module and with `--fresh Solution`, run independently twice (reported by the user; the red-team session's own `--fresh Solution` run also exited 0, REDTEAM.md §5.3).
+* Red-team (REDTEAM.md): no critical or major issues; four minor documentation findings (M1–M4), now reflected in README.md.
+* Comparator: not run.
+
 ## Lemma table
 
 | Name | File | Statement (short) | Status | Evidence |

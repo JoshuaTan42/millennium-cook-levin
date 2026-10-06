@@ -46,6 +46,8 @@ Your deliverable is Solution.lean containing the same theorem: same name, same t
 
 8\. Never say a command ran or passed unless you ran it; quote the output. Without shell access, give me exact commands and wait for results.
 
+9\. Never install toolchains, clones or caches on C:. Check free space on the target drive before any download or build over 1 GB, and stop if it would leave less than 10 GB free.
+
 
 
 \## Plan
