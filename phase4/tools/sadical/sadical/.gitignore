@@ -1,6 +1,0 @@
-makefile
-config.c
-dependencies
-*.o
-libsadical.a
-sadical

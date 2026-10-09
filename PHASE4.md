@@ -482,6 +482,11 @@ bears on `sat_in_p`; the project status remains **NOT PROVED**.
 
 SaDiCaL default options, text DPR proof output (`--no-binary`), 3,600 s cap (`timeout 3600` inside WSL; the runner's own 3,720 s kill is recorded as `TIMEOUT`), two concurrent runs under WSL; proofs checked with dpr-trim. `UNKNOWN` = SaDiCaL exited without an answer line (at the cap, or earlier: `cliquecol_n12` exited after 108 s with 30,816 conflicts and no result; raw output in `phase4/results/out/`). `None` in the dpr-trim column = proof file not present when the check ran (not checked). SaDiCaL's cost is not comparable to SDCL\*'s (different search; inner conflicts not reported); the table shows that short PR proofs of these instances are findable in practice.
 
+Reproducing these runs: the SaDiCaL source is not vendored in this repository. It was obtained from its upstream page http://fmv.jku.at/sadical
+(archive `https://fmv.jku.at/sadical/sadical.zip`, SHA-256 `707efdc5a291e47100c54b4ab6c1641375fea2eca49da772f0e90543802d004c`); its `VERSION`
+file reads `00n`. Unpack it to `phase4/tools/sadical/` and build with `./configure.sh && make` under WSL; `phase4/src/run_sadical.py` expects the
+binary at `phase4/tools/sadical/sadical/sadical`.
+
 | family | instance | size | SaDiCaL result | conflicts | prunes | reducts | wall (s) | dpr-trim |
 |---|---|---|---|---|---|---|---|---|
 | F3 | php_9_8.cnf | 8 | UNSATISFIABLE | 215 | 160 | 291 | 5.2 | VERIFIED |

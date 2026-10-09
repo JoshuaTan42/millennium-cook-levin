@@ -1,3 +1,6 @@
 .lake/
 phase4/results/proofs/
 phase4/results/proofs_sadical/
+__pycache__/
+*.exe
+phase4/tools/sadical/

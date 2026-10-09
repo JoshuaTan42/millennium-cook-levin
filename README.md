@@ -106,7 +106,8 @@ lake env leanchecker --fresh Solution
 |`Challenge.lean`|The target statement `Millennium.ClayPVersusNP`, left as `sorry`|
 |`SatInP.lean`|`sat_in_p`, open|
 |`Solution.lean`|Derives `p_eq_np` from `cook_levin` and `sat_in_p`|
-|`D3SDef.lean`, `Spike.lean`, `ToyD3.lean`, `Scratch\*.lean`|Exploratory or scratch files, not part of the proof|
+|`scratch/`|Exploratory or scratch files (`D3SDef.lean`, `Spike.lean`, `ToyD3.lean`, `Scratch*.lean`), not part of the proof or the build|
+|`logs/`|Build logs from development sessions|
 |`NOTES.md`|Development log, design decisions, lemma table|
 |`DEFINITIONS.md`|Summary of the LeanMillenniumPrizeProblems definitions used|
 
@@ -139,5 +140,5 @@ The Lean code was written by an AI coding agent (Claude Code, by Anthropic) over
 
 ## License
 
-Copyright 2026 Joshua Tan. Licensed under the Apache License, Version 2.0; see `LICENSE`. LeanMillenniumPrizeProblems, Mathlib and Physlib are separate projects under their own licenses.
+Copyright 2026 Joshua Tan. Licensed under the Apache License, Version 2.0; see `LICENSE`. LeanMillenniumPrizeProblems, Mathlib and Physlib are separate projects under their own licenses. `phase4/instances` contains third-party benchmark files (SATLIB, SAT Competition 2023), which remain under their own terms. `phase4/tools/dpr-trim` is a Git submodule under its own licence.
 
